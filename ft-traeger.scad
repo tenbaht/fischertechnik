@@ -1,15 +1,20 @@
 // Fischertechnik Statik-Träger
 //
 
-// parameters
-l=30;   // total length of strip
-n=3;    // number of holes
-
 // constants
 b=8;    // width of the strip
 d=3;    // thickness
 $fn=30;
-pitch=l/(n-1);  // distance between two holes
+
+strebe(3,is_crosstype=true);
+
+
+module strebe (n,is_crosstype=false)
+{
+    pitch   = is_crosstype ? 21.2 : 15;
+    marking = is_crosstype ? "X"  : "l";
+
+    l = (n-1)*pitch;   // total length of strip
 
 difference(){
 // define the solid strip with round ends
@@ -48,15 +53,19 @@ for (i=[1:n-1])
 translate([pitch/2,0,0]) {
     linear_extrude(1) text("MM",size=3,halign="center",valign="center");
     // add the "-" marker on the back side
-    translate([0,0,-0.5]) cube([3,0.5,1],center=true);
+//    translate([0,0,-0.5]) cube([3,0.5,1],center=true);
+    mark_type(marking);
 }
 
 // last hole: add the dimension
 translate([l-pitch/2,0,0]) {
     linear_extrude(1) text(str(l),size=3,halign="center",valign="center");
     // add the "-" marker on the back side
-    translate([0,0,-0.5]) cube([3,0.5,1],center=true);
+//    translate([0,0,-0.5]) cube([3,0.5,1],center=true);
+    mark_type(marking);
 }
+}
+
 
 module loch () {
     difference(){
@@ -64,4 +73,12 @@ module loch () {
         cube([b-2,2.5,2],center=true);
         cylinder(h=2,d=4,center=true);
     }
+}
+
+// emboss the type marker ("-" or "x")
+module mark_type (marking) {
+    translate([0,0,-1])
+    linear_extrude(1)
+        rotate(90)
+            text(marking,size=3,halign="center",valign="center");
 }
