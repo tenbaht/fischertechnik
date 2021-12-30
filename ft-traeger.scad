@@ -1,3 +1,6 @@
+// Fischertechnik Statik-Träger
+//
+
 // parameters
 l=30;   // total length of strip
 n=3;    // number of holes
@@ -10,21 +13,26 @@ pitch=l/(n-1);  // distance between two holes
 
 difference(){
 // define the solid strip with round ends
-union(){
-translate([0,-b/2,-d/2])
-  cube([l,b,d]);
-cylinder(h=d,r=b/2,center=true);
-translate([l,0,-d/2])
-  cylinder(h=d,r=b/2);
-}
+    union(){
+        translate([0,-b/2,-d/2])
+            cube([l,b,d]);
+        cylinder(h=d,r=b/2,center=true);
+        translate([l,0,-d/2])
+            cylinder(h=d,r=b/2);
+    }
+
 // drill holes into the solid strip
-cylinder(h=d+0.01,d=b-2,center=true);
-translate([15,0,0]) cylinder(h=d+0.01,d=b-2,center=true);
-translate([30,0,0]) cylinder(h=d+0.01,d=b-2,center=true);
+    cylinder(h=d+0.01,d=b-2,center=true);
+    for (i=[1:n]) {
+        translate([i*pitch,0,0])
+            cylinder(h=d+0.01,d=b-2,center=true);
+    }
+
 // remove material between the holes
-//translate([pitch/2,0,d/2]) cube([pitch-b,b-3,1*2],center=true);
-translate([pitch/2,0,0]) cube([pitch-b,b-3,d+0.01],center=true);
-translate([3*pitch/2,0,0]) cube([pitch-b,b-3,d+0.01],center=true);
+    translate([pitch/2,0,0])
+        cube([pitch-b,b-3,d+0.01],center=true);
+    translate([3*pitch/2,0,0])
+        cube([pitch-b,b-3,d+0.01],center=true);
 }
 
 // fill the holes with the holing structure
