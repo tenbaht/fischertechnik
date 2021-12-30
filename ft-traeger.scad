@@ -21,24 +21,20 @@ difference(){
             cylinder(h=d,r=b/2);
     }
 
-// drill holes into the solid strip
     cylinder(h=d+0.01,d=b-2,center=true);
     for (i=[1:n]) {
+        // drill holes into the solid strip
         translate([i*pitch,0,0])
             cylinder(h=d+0.01,d=b-2,center=true);
+        // remove material between the holes
+        translate([(i-0.5)*pitch,0,0])
+            cube([pitch-b,b-3,d+0.01],center=true);
     }
-
-// remove material between the holes
-    translate([pitch/2,0,0])
-        cube([pitch-b,b-3,d+0.01],center=true);
-    translate([3*pitch/2,0,0])
-        cube([pitch-b,b-3,d+0.01],center=true);
 }
 
-// fill the holes with the holing structure
-translate([0,0,0]) loch();
-translate([15,0,0]) loch();
-translate([30,0,0]) loch();
+// fill the holes with the holding structure
+for (i=[0:n-1])
+    translate([i*pitch,0,0]) loch();
 
 // fill the rectangular holes again
 // first hole: add the brand name
