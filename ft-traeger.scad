@@ -53,7 +53,7 @@ translate([pitch/2,0,0]) {
 
 // last hole: add the dimension
 translate([l-pitch/2,0,0]) {
-    linear_extrude(1) text("30",size=3,halign="center",valign="center");
+    linear_extrude(1) text(str(l),size=3,halign="center",valign="center");
     // add the "-" marker on the back side
     translate([0,0,-0.5]) cube([3,0.5,1],center=true);
 }
