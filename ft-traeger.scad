@@ -21,34 +21,38 @@ difference(){
             cylinder(h=d,r=b/2);
     }
 
-    cylinder(h=d+0.01,d=b-2,center=true);
-    for (i=[1:n]) {
-        // drill holes into the solid strip
+    // drill holes into the solid strip
+    for (i=[0:n-1])
         translate([i*pitch,0,0])
             cylinder(h=d+0.01,d=b-2,center=true);
-        // remove material between the holes
+
+    // remove material between the holes
+    for (i=[1:n-1])
         translate([(i-0.5)*pitch,0,0])
             cube([pitch-b,b-3,d+0.01],center=true);
-    }
 }
 
 // fill the holes with the holding structure
 for (i=[0:n-1])
     translate([i*pitch,0,0]) loch();
 
-// fill the rectangular holes again
+// fill the rectangular holes again to change them into pockets
+for (i=[1:n-1])
+    translate([(i-0.5)*pitch,0,0])
+    // 1mm overlap
+        cube([pitch-b+1,b-2,1],center=true);
+
+
+
 // first hole: add the brand name
 translate([pitch/2,0,0]) {
-    // 1mm overlap
-    cube([pitch-b+1,b-2,1],center=true);
     linear_extrude(1) text("MM",size=3,halign="center",valign="center");
     // add the "-" marker on the back side
     translate([0,0,-0.5]) cube([3,0.5,1],center=true);
 }
+
 // last hole: add the dimension
-translate([3*pitch/2,0,0]) {
-    // 1mm overlap
-    cube([pitch-b+1,b-2,1],center=true);
+translate([l-pitch/2,0,0]) {
     linear_extrude(1) text("30",size=3,halign="center",valign="center");
     // add the "-" marker on the back side
     translate([0,0,-0.5]) cube([3,0.5,1],center=true);
