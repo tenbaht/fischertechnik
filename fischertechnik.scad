@@ -1,4 +1,43 @@
+// === globale Variablen ===========================
+
+no_screwslots = false;  // Schraubenschlitze in den Rastnasen
+
 $fn=30;
+
+
+// === reale Bausteine =============================
+
+module Baustein30(color="Silver") {
+    Grundbaustein(color=color);
+}
+
+module Baustein30viereckloch(color="Silver") {
+    Grundbaustein(color=color, querloch=true,viereckloch=true);
+}
+
+module Baustein30rundloch(color="Silver") {
+    Grundbaustein(color=color, querloch=true,viereckloch=false);
+}
+
+module Baustein15(color="Silver") {
+    Grundbaustein(len=15,color=color);
+}
+
+module Baustein15_2z(color="Silver") {
+    Grundbaustein(len=15,rastnasen=2,color=color);
+}
+
+module Baustein15rz(color="Silver") {
+    Grundbaustein(len=15,rundnase=true,color=color);
+}
+
+module Baustein15_2rz(color="Silver") {
+    Grundbaustein(len=15,rastnasen=2,rundnase=true,color=color);
+}
+
+
+
+// === interne Designelemente ======================
 
 // Subtraktionskörper für eine Rundnut
 // entlang der Z-Achse
@@ -18,22 +57,47 @@ module flachnut(l=30.1,d=4) {
     }
 }
 
+/**
+ * Rastnase
+ *
+ * Ausrichtung: an akt. X/Y Position in pos. Z-Richtung
+ * Farbe: immer Dunkelgrau
+ */
 module rastnase() {
-    color ("DimGray") {
-    translate ([-1,-1,0]) cube(2);
-    intersection () {
-        translate ([0,0,2.1]) sphere(d=4);
-        cube (2.8*2,center=true);
+    color ("DimGray")
+    {
+        difference () {
+        union () {
+            translate ([-1,-1,0]) cube(2);
+
+            translate ([0,0,2.1])
+            intersection () {
+                rotate ([0,90,0]) cylinder(h=4,d=4,center=true);
+                rotate ([90,0,0]) cylinder(h=4,d=4,center=true);
+                translate ([0,0,-1]) cylinder(h=2,d=10,center=true);
+            };
+        };
+
+        // den "Schrauben"-Schlitz subtrahieren
+        if (!no_screwslots)
+        translate ([0,0,2]) rotate ([0,0,45]) cube ([0.5,8,1],center=true);
     };
+
     };
 }
 
+/**
+ * Rundnase
+ *
+ * Ausrichtung: an akt. X/Y Position in pos. Z-Richtung
+ * Farbe: immer dunkles Orange
+ */
 module rundnase() {
     color ("OrangeRed") {
     translate ([-1,-1,0]) cube(2);
     intersection () {
         translate ([0,0,2.1]) sphere(d=4);
-        cube (2.8*2,center=true);
+        cube (2*2,center=true);
     };
     };
 }
@@ -76,46 +140,34 @@ module Grundbaustein(color="Silver",len=30,rastnasen=1,rundnase=false,querloch=f
             translate ([0,-5.5,len-2]) cube (4.01,center=true);
         }
     }
-    rotate ([180,0,0]) rastnase();
+
+    // Rast/Rundnase(n) vorne und hinten
+    rotate ([180,0,0]) if (rundnase) 
+        rundnase();
+    else
+        rastnase();
+    
     if (rastnasen==2) {
-        translate ([0,0,len]) rastnase();
+        translate ([0,0,len]) if (rundnase)
+            rundnase();
+        else
+            rastnase();
     }
     
 }
 
-module Baustein30(color="Silver") {
-    Grundbaustein(color=color);
-}
 
-module Baustein30viereckloch(color="Silver") {
-    Grundbaustein(color=color, querloch=true,viereckloch=true);
-}
+// === Testdarstellung ==============================
 
-module Baustein30rundloch(color="Silver") {
-    Grundbaustein(color=color, querloch=true,viereckloch=false);
-}
-
-module Baustein15(color="Silver") {
-    Grundbaustein(len=15,color=color);
-}
-
-module Baustein15_2z(color="Silver") {
-    Grundbaustein(len=15,rastnasen=2,color=color);
-}
-
-module Baustein15rz(color="Silver") {
-    Grundbaustein(len=15,rundnase=true,color=color);
-}
-
-module Baustein15_2rz(color="Silver") {
-    Grundbaustein(len=15,rastnasen=2,rundnase=true,color=color);
-}
-
-
-// Testaufrufe
+// div. Designelemente
+// Subtraktionskörper für Nuten
 nut();
-translate ([0,-6,0]) flachnut();
-translate ([6,-6,0]) rastnase();
+translate ([6,0,0]) flachnut();
+
+// Rast- und Rundnase
+translate ([0,-6,0]) rastnase();
+translate ([6,-6,0]) rundnase();
+
 
 // 30er Grundbaustein
 translate ([0,-20,0]) Baustein30();

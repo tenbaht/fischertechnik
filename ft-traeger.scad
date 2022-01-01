@@ -6,7 +6,8 @@ b=8;    // width of the strip
 d=3;    // thickness
 $fn=30;
 
-strebe(3,is_crosstype=true);
+n=3;
+strebe(n,is_crosstype=true);
 
 
 module strebe (n,is_crosstype=false)
