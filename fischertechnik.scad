@@ -63,7 +63,7 @@ module flachnut(l=30.1,d=4) {
  * Ausrichtung: an akt. X/Y Position in pos. Z-Richtung
  * Farbe: immer Dunkelgrau
  */
-module rastnase() {
+module rastnase(screwslot=false) {
     color ("DimGray")
     {
         difference () {
@@ -79,7 +79,7 @@ module rastnase() {
         };
 
         // den "Schrauben"-Schlitz subtrahieren
-        if (!no_screwslots)
+        if (screwslot && no_screwslots==false)
         translate ([0,0,2]) rotate ([0,0,45]) cube ([0.5,8,1],center=true);
     };
 
@@ -145,15 +145,32 @@ module Grundbaustein(color="Silver",len=30,rastnasen=1,rundnase=false,querloch=f
     rotate ([180,0,0]) if (rundnase) 
         rundnase();
     else
-        rastnase();
+        rastnase(screwslot=true);
     
     if (rastnasen==2) {
         translate ([0,0,len]) if (rundnase)
             rundnase();
         else
-            rastnase();
+            rastnase(screwslot=true);
     }
     
+}
+
+
+module Bauplatte(color="red",x=2,y=1)
+{
+    color(color) {
+        translate([-7.5,-7.5,0]) {
+            cube([x*15,y*15,1]);
+        };
+        for (j=[0:y-1]) {
+           for (i=[0:x-1]) {
+                translate([i*15,j*15,0])
+                rotate([0,180,0])
+                rastnase();
+            };
+        };
+    };
 }
 
 
@@ -181,3 +198,8 @@ translate ([20,-40,0]) Baustein15_2z();
 // 15er mit Rundnase
 translate ([0,-60,0]) Baustein15rz();
 translate ([20,-60,0]) Baustein15_2rz();
+
+// Bauplatten
+translate ([0,-80,0]) Bauplatte(color="red",x=2,y=1);
+translate ([0,-100,0]) Bauplatte(color="red",x=3,y=1);
+translate ([0,-140,0]) Bauplatte(color="red",x=4,y=2);
