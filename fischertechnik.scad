@@ -35,6 +35,36 @@ module Baustein15_2rz(color="Silver") {
     Grundbaustein(len=15,rastnasen=2,rundnase=true,color=color);
 }
 
+module Baustein5() {
+    color("red") {
+        difference () {
+            translate ([-7.5,-7.5]) cube([15,15,5]);
+            rotate ([-90,0,0]) flachnut();
+        };
+        translate ([0,0,5]) rastnase();
+    };
+}
+
+module Baustein7() {
+    color("red") {
+        difference () {
+            translate ([-7.5,-7.5]) cube([15,15,7.5]);
+            // die beiden Flachnuten oben und unten
+            rotate ([-90,0,0]) flachnut();
+            translate ([0,0,7.5]) rotate ([90,0,0]) flachnut();
+            // die Rundnuten an den Seiten
+            // links
+            translate ([-7.5,0,7.5/2])
+                rotate ([0,90,90])
+                    nut();
+            // rechts
+            translate ([7.5,0,7.5/2])
+                rotate ([0,90,270])
+                    nut();
+
+        };
+    };
+}
 
 
 // === interne Designelemente ======================
@@ -203,3 +233,6 @@ translate ([20,-60,0]) Baustein15_2rz();
 translate ([0,-80,0]) Bauplatte(color="red",x=2,y=1);
 translate ([0,-100,0]) Bauplatte(color="red",x=3,y=1);
 translate ([0,-140,0]) Bauplatte(color="red",x=4,y=2);
+
+translate ([0,-160,0]) Baustein5();
+translate ([20,-160,0]) Baustein7();
