@@ -66,6 +66,33 @@ module Baustein7() {
     };
 }
 
+/**
+ *
+ * Ausrichtung: Rastnasen unten, Innenraum offen entlang Y-Achse
+ * FIXME: Materialstärke wild geschätzt. Nachmessen!
+ */
+module Rollenlager15() {
+    color("red") {
+        difference () {
+            // Grundkörper
+            translate ([-7.5,-7.5,0]) cube(15);
+            // Aussparung Innenraum
+            translate ([-5.5,-8,2]) cube([11,16,15]);
+            // Nut hinten
+            translate ([0,7.5,0]) rotate ([0,0,0])  nut();
+            // Nut vorne
+            translate ([0,-7.5,0]) rotate ([0,0,180])  nut();
+            // Nut hinten
+            translate ([0,7.5,7.5]) rotate ([0,90,0])  nut();
+            // Nut hinten
+            translate ([0,-7.5,7.5]) rotate ([180,90,0])  nut();
+            // Nut oben
+            translate ([0,0,15]) rotate ([90,0,90])  nut();
+        };
+        rotate ([180,0,0]) rastnase();
+    };
+}
+
 
 // === interne Designelemente ======================
 
@@ -236,3 +263,4 @@ translate ([0,-140,0]) Bauplatte(color="red",x=4,y=2);
 
 translate ([0,-160,0]) Baustein5();
 translate ([20,-160,0]) Baustein7();
+translate ([40,-160,0]) Rollenlager15();
