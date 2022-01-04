@@ -7,34 +7,58 @@ $fn=30;
 
 // === reale Bausteine =============================
 
+/**
+ * 1966:31003 Baustein 30 (graun)
+ */
 module Baustein30(color="Silver") {
     Grundbaustein(color=color);
 }
 
+/**
+ * 1973:31004 Baustein 30 Vierkantbohrung (grau)
+ */
 module Baustein30viereckloch(color="Silver") {
     Grundbaustein(color=color, querloch=true,viereckloch=true);
 }
 
+/**
+ * 1966:31004 Baustein 30 Rundbohrung (grau)
+ */
 module Baustein30rundloch(color="Silver") {
     Grundbaustein(color=color, querloch=true,viereckloch=false);
 }
 
+/**
+ * 1966:31005 Baustein 15 (grau)
+ */
 module Baustein15(color="Silver") {
     Grundbaustein(len=15,color=color);
 }
 
+/**
+ * 1966:31006 Baustein 15 2Z (grau)
+ */
 module Baustein15_2z(color="Silver") {
     Grundbaustein(len=15,rastnasen=2,color=color);
 }
 
-module Baustein15rz(color="Silver") {
-    Grundbaustein(len=15,rundnase=true,color=color);
-}
-
+/**
+ * 1966:31007 Baustein 15 2RZ (rot)
+ */
 module Baustein15_2rz(color="Silver") {
     Grundbaustein(len=15,rastnasen=2,rundnase=true,color=color);
 }
 
+/**
+ * 1966:31059 Baustein 15 RZ (rot)
+ */
+module Baustein15rz(color="Silver") {
+    Grundbaustein(len=15,rundnase=true,color=color);
+}
+
+/**
+ * 1973:37237 Baustein 5 (rot)
+ */
 module Baustein5() {
     color("red") {
         difference () {
@@ -45,6 +69,9 @@ module Baustein5() {
     };
 }
 
+/**
+ * 1975:37468 Baustein 7.5 (rot)
+ */
 module Baustein7() {
     color("red") {
         difference () {
@@ -67,6 +94,7 @@ module Baustein7() {
 }
 
 /**
+ * 1975:37636 Rollenlager 15 (rot)
  *
  * Ausrichtung: Rastnasen unten, Innenraum offen entlang Y-Achse
  * FIXME: Materialstärke wild geschätzt. Nachmessen!
@@ -77,11 +105,11 @@ module Rollenlager15() {
             // Grundkörper
             translate ([-7.5,-7.5,0]) cube(15);
             // Aussparung Innenraum
-            translate ([-5.5,-8,2]) cube([11,16,15]);
+            translate ([-3.75,-8,2]) cube([7.5,16,15]);
             // Nut hinten
-            translate ([0,7.5,0]) rotate ([0,0,0])  nut();
+//            translate ([0,7.5,0]) rotate ([0,0,0])  nut();
             // Nut vorne
-            translate ([0,-7.5,0]) rotate ([0,0,180])  nut();
+//            translate ([0,-7.5,0]) rotate ([0,0,180])  nut();
             // Nut hinten
             translate ([0,7.5,7.5]) rotate ([0,90,0])  nut();
             // Nut hinten
@@ -92,6 +120,458 @@ module Rollenlager15() {
         rotate ([180,0,0]) rastnase();
     };
 }
+
+
+/**
+ * 1966:31010 Winkelstein 60° (rot)
+ *
+ * FIXME: Abstand -4 für translate von der Mittelachse nur geschätzt. Nachrechnen!
+ *
+ */
+module Winkelstein60() {
+    color("red") {
+        linear_extrude(height=15) circle(r=8.66,$fn=3);
+        for (a=[0:120:240]) {
+            rotate ([0,0,a])
+            translate([-4,0,7.5])
+            rotate([0,270,0])
+            rastnase();
+        }
+    };
+}
+
+/**
+ * 1966:31011 Winkelstein 30° (rot)
+ *
+ * FIXME: alles nur geschätzt. Nachrechnen!
+ *
+ */
+module Winkelstein30() {
+    color("red") {
+        rotate([90,0,0])
+        linear_extrude(height=15) polygon(points=[
+            [-5.5,0],[5.5,0],[2,14.5],[-2,14.5],
+            [-5.5,0]
+        ]);
+/*
+        circle(r=8.66,$fn=3);
+        for (a=[0:120:240]) {
+            rotate ([0,0,a])
+            translate([-4,0,7.5])
+            rotate([0,270,0])
+            rastnase();
+        }
+*/
+    };
+}
+
+/**
+ * 1966:31013 Flachstein 30 (rot)
+ *
+ * Referenzpunkt: linke untere Ecke
+ */
+module Flachstein30(color="Red") {
+    color(color) {
+        difference() {
+            union() {
+                translate([30,15,0]) rotate([0,90,90]) flachnut();
+                translate([0,15,0])  rotate([0,90,270]) flachnut();
+                translate([0,0,-2]) cube ([30,30,4]);
+            };
+            translate([2,2,0]) cube ([26,26,2.01]);
+        };
+    }
+}
+
+
+/**
+ * 1971:35795 Seilrolle 21x7 (rot)
+ *
+ * Referenzpunkt: Mittig auf der Drehachse
+ */
+module Seilrolle21x7() {
+    color("Red")
+    rotate_extrude(convexity = 10)
+    polygon( points=[
+        // top side profile:
+        // d=4mm inner hole, d=7.5mm inner flange, d=15.5mm middle flange (3.5mm thick), d=23mm outer flange
+        [2.05,3.5],[3.75,3.5],[3.75,1.75],[7.75,1.75],[7.75,3.5],[11.5,3.5],
+        // outer side profile:
+        //   1mm staight, 1mm -2mm,
+        //   3mm staight,
+        //   1mm +2mm, 1mm straight
+        [11.5,2.5],[9.5,1.5],
+        [9.5,-1.5],[11.5,-2.5],
+        // bottom side (symmetrical to the top side)
+    [11.5,-3.5],[7.75,-3.5],[7.75,-1.75],[3.75,-1.75],[3.75,-3.5],[2.05,-3.5],[2.05,3.5]
+    ] );
+    }
+
+
+/**
+  * 1966:31014 Nabe 25 komplett
+  *
+  * Referenzpunkt: mittig in der Radaufnahme
+  * Größen:
+  * - von Mitte bis Oberseite der Hauptscheibe: 3.3mm
+  * - Von Mitte bis Unten: 10.55-1.1 = 9.45mm
+  * - von Mitte bis Oben:   8.7 +1.1 = 9.8mm
+  * - Gesamthöhe 19.25mm (FIXME: soll = 18mm)
+  * 
+  */
+module Nabe() {
+    translate([0,0,1.1]) Nabenoberteil();
+    translate([0,0,-1.1]) Nabenunterteil();
+//    translate([0,0,-4.75]) Nabenunterteil();
+}
+
+/**
+  * 1966:31015 Flachnabe 25 komplett (rot)
+  *
+  * Referenzpunkt: mittig bei der Radaufnahme
+  * Größen:
+  * - von Mitte bis Oberseite der Hauptscheibe: 3.3mm
+  * - Von Mitte bis Unten: 12.75-3.65 = 9.1mm
+  * - von Mitte bis Oben:   8.7 +1.1  = 9.8mm
+  * - Gesamthöhe
+  * 
+  */
+module Flachnabe() {
+    translate([0,0,1.1]) Nabenoberteil();
+    translate([0,0,-3.65]) Flachnabenunterteil();
+}
+
+/**
+ * 1966:31026 Handkurbel KR25 (rot)
+ *
+ * Simplified model with only aprox. measurements.
+ * Some internal cut outs missing.
+ *
+ * Referenzpunkt: Achsenmitte am unteren Ende der Kurbel. Griff liegt dann 25mm weiter links (dx=25mm)
+ * Zur richtigen Montage auf einer Nabe muss die Kurbel um dz=+3.3mm verschoben werden.
+ */
+module Handkurbel() {
+    color("Red")
+    difference() {
+        union() {
+            hull() {
+                cylinder(d1=17,d2=14,h=8.5);
+                translate ([25,0,20-13.5]) cylinder(d=4.5,h=3);        }
+            // the axle holder top
+            translate ([0,0,12-5]) cylinder(d1=7,d2=5,h=5);
+            // handle
+            translate ([25,0,20-13.5]) cylinder(d1=4.5,d2=4,h=13.5);
+        }
+        // cut out the part under the handle
+        rotate_extrude() polygon(points=[[11.5,0],[11.5,4],[28,7],[28,0],[11.5,0]]);
+        // empty the interior of the main part
+        translate([0,0,-0.01]) cylinder(d1=17-3,d2=11.5,h=6);
+        cube([25,2.5,11],center=true);
+        // axle bore
+        cylinder(d=4,h=25,center=true);
+    }
+}
+
+
+/**
+ * 1966:31023 Klemmbuchse 10
+ *
+ * Klemmbuchse entlang der Z-Achse.
+ *
+ * Referenzpunkt: mittig im Teil auf der Achse.
+ */
+module Klemmbuchse10(l=10) {
+    color("Red")
+    difference() {
+        cylinder(d=7.7,h=l,center=true);
+        cylinder(d=3.5,h=l+0.01,center=true);
+        translate([0,-1.25,-l/2-0.01]) cube([4,2.5,l+0.02]);
+        translate([-4,-0.5,l/2-1]) cube([4,1,1+0.01]);
+    }
+}
+
+
+/**
+ * 1975:37679 Klemmbuchse 5
+ *
+ * Klemmbuchse entlang der Z-Achse.
+ *
+ * Referenzpunkt: mittig im Teil auf der Achse.
+ */
+module Klemmbuchse5() {
+    Klemmbuchse10(l=5);
+}
+
+
+/**
+ * 1966:31024 Klemmkupplung 20
+ *
+ * Klemmkupplung entlang der Z-Achse.
+ *
+ * Referenzpunkt: mittig im Teil auf der Achse.
+ */
+module Klemmkupplung20() {
+    l=20;
+    color("Red")
+    difference() {
+        cylinder(d=7.7,h=l,center=true);
+        cylinder(d=4,h=l+0.01,center=true);
+        translate([-4,-0.25,l/2-1.5]) cube([8,0.5,2]);
+        translate([-4,-0.25,-l/2-2+1.5]) cube([8,0.5,2]);
+    }
+}
+
+
+/**
+ * Metallachsen
+ *
+1966:31034 Metallachse30
+1966:31033 Metallachse50
+1966:31032 Metallachse60
+1975:37384 Metallachse80
+1982:31040 Metallachse90
+1966:31031 Metallachse110
+1982:31036 Metallachse125
+1982:31030 Metallachse150
+1995:36975 Metallachse160
+1971:35696 Metallachse170
+1971:35697 Metallachse200
+1968:31310 Metallachse235
+2016:159590 Metallachse235
+1985:31055 Metallachse240
+2003:107436 Metallachse260
+2003:107435 Metallachse275
+1985:32355 Metallachse315
+1969:31377 Metallachse360
+1985:32356 Metallachse435
+2016:160357 Metallachse450
+ */
+module Metallachse30() {color("Silver") achse(30);}
+module Metallachse50() {color("Silver") achse(50);}
+module Metallachse60() {color("Silver") achse(60);}
+module Metallachse80() {color("Silver") achse(80);}
+module Metallachse110() {color("Silver") achse(110);}
+module Metallachse150() {color("Silver") achse(150);}
+
+
+/**
+ * 1966:31017 Reifen 30 (schwarz)
+ *
+ * Profil aussen: 1mm klein, 0.5mm groß, 3mm klein, 0.5groß, 1 klein
+ * - Durchmesser groß 29, klein 28
+ *   innen 26, 22(25.5, 21.5?)
+ *   Anfasung innen 2.5, 45°, 0.75
+ * Referenzpunkt: mittig im Reifen
+ */
+module Reifen30() {
+    color("DimGray") {
+        rotate_extrude()
+            polygon(points=[[11,1],[13,2],[13,3],
+            [14,3],[14,2],[14.5,2],[14.5,1.5],[14,1.5],
+            [14,-1.5],[14.5,-1.5],[14.5,-2],[14,-2],[14,-3],
+            [13,-3],[13,-2],[11,-1],
+            [11,1]]
+            );
+        // add the inner teeth
+        reifenzaehne();
+        rotate([0,0,120]) reifenzaehne();
+        rotate([0,0,240]) reifenzaehne();
+    };
+}
+
+
+/**
+ * Slotlöcher am Anfang und Ende sind weniger tief
+ * Vertiefungen rund um die Mittellöcher
+ * Logo
+ */
+module Grundplatte90x90(l=90,b=90) {
+    color("Red")
+    difference() {
+        cube([l,b,6]);
+        // slots on both sides
+        for (i=[7.5:15:l]) {
+            translate([i,0,3]) rotate([270,0,0]) slot();
+            translate([i,b,3]) rotate([90,0,0]) slot();
+        };
+        // row of holes in the middle
+        // a) corner hole left
+        translate([0,b/2,0])
+            rotate([0,0,90])
+                nut();
+        // b) corner hole right
+        translate([l,b/2,0])
+            rotate([0,0,270])
+                nut();
+        // c) row of holes in the middle
+        for (i=[15:15:l-1]) {
+            translate([i,b/2,-0.01]) cylinder(d=4,h=7);
+        };
+        // holes an the side flanks
+        // left
+        translate([-0.1,b/2-7.5,3]) rotate([0,90,0]) cylinder(d=4,h=20.1);
+        translate([-0.1,b/2+7.5,3]) rotate([0,90,0]) cylinder(d=4,h=20.1);
+        translate([l+0.1,b/2-7.5,3]) rotate([0,270,0]) cylinder(d=4,h=20.1);
+        translate([l+0.1,b/2+7.5,3]) rotate([0,270,0]) cylinder(d=4,h=20.1);
+    }
+
+    // eye candy: emboss the logo
+    translate([13,b-32,5.5]) logo();
+}
+
+/**
+Box 262x189x40 hobbywelt (grau)
+Box 189x131x40 u-tS neutral (grau)
+1975:37386 Box 189x131x40 50 (grau)
+1975:37387 Box 189x131x40 50-1 (grau)
+1975:37378 Box 189x131x40 50-2 (grau)
+ */
+module Box250_50() {
+    dx3=76;
+    dx4=63;
+    dx1=189-2*1.5-dx3-dx4-2*1;
+    dx2=46;
+    x1=1.5;
+    x2=x1+dx1+1;
+    x4=x2+dx3+1;
+
+    Box250();
+    translate([189-1.5-63,1.5,1.4]) compartment(dx=63,dy=31.5,d=1,h=32.5+0.1);
+    // Grundbausteine 30
+//    translate([189-1.5-63-1-76,1.5,1.4]) {
+    translate([x2,1.5,1.4]) {
+        compartment(dx=76,dy=31.5,d=1,h=10+0.1);
+        translate([7.5,   8,30]) rotate([180,0,0]) Baustein30viereckloch();
+        translate([7.5,23.5,30]) rotate([180,0,0])Baustein30viereckloch();
+        for (i=[1:4]) {
+            translate([7.5+15.1*i,   8,30]) rotate([180,0,0]) Baustein30();
+            translate([7.5+15.1*i,23.5,30]) rotate([180,0,0]) Baustein30();
+        };
+    };
+
+    // Grundbausteine 15
+    translate([x2,1.5+31.5+1,1.4]) {
+        compartment(dx2,dy=31.5,d=1,h=10+0.1);
+        translate([7.5, 8,15]) rotate([180,0,0]) Baustein15_2rz();
+        translate([7.5,23.5,15]) rotate([180,0,0])Baustein15_2z();
+        for (i=[1:2]) {
+            translate([7.5+15.1*i, 8,15]) rotate([180,0,0]) Baustein15();
+            translate([7.5+15.1*i,23.5,15]) rotate([180,0,0]) Baustein15();
+        };
+    };
+
+    // Winkelstein 30
+    translate([x2,1.5+31.5+1+31.5+1,1.4]) {
+        compartment(dx2,dy=16,d=1,h=8+0.1);
+        for (i=[1:4]) {
+            translate([11.5*(i-0.5),15,0]) Winkelstein30();
+        };
+    };
+
+    // Winkelstein 60
+    translate([x2,1.5+31.5+1+31.5+1+16+1,1.4]) {
+        compartment(31.5,dy=16,d=1,h=8+0.1);
+        for (i=[0:1]) {
+            translate([8+15.5*i,0,0]) Winkelstein60();
+        };
+    };
+
+    // Seilrolle 21x7
+    translate([x2,131-1.5-7.5,1.4]) {
+        compartment(dx2,dy=7.5,d=1,h=8+0.1);
+        for (i=[1:2:3]) {
+            translate([i*dx2/4,3.5,0]) rotate([90,0,0]) Seilrolle21x7();
+        };
+    };
+
+    // Nabe und Rad
+    for (i=[0:3]) translate([30,1.5+16+32*i,1.4]) {
+        // ring to hold the tire
+        difference() {
+            cylinder(d=19.5,h=5+0.1);
+            cylinder(d=17.5,h=6);
+        }
+        cylinder(d=4.5,h=5+0.1);
+        cylinder(d=3.5,h=15+0.1);
+        translate([0,0,3]) Reifen30();
+        translate([0,0,14.8]) Nabe();
+    }
+}
+
+/*
+ * Fachunterteilung
+ *
+ * Referenzpunkt: unten links im Innenraum
+ * - h: Höhe
+ * - d: Wandstärke
+ * - dx: Größe in X-Richtung (Breite)
+ * - dy: Größe in Y-Richtung (Tiefe)
+ */
+module compartment(dx=10,dy=10,d=1,h=10) {
+    translate([-d,-d,0]) difference() {
+        cube([dx+2*d,dy+2*d,h]);
+        translate([d,d,-0.01]) cube([dx,dy,h+0.02]);
+    }
+}
+
+
+
+module Box250() {
+    r=2.0;          // outer corner radius
+    d=1.5;          // wall thickness
+    d1=1.0;         // wall thickness for the upper part
+    r1=r-(d-d1);    // inner corner radius for the upper part
+    color("Silver") {
+    difference() {
+        // cube([189,131,40]) with round corners r=1
+        translate([r,r,r]) hull() {
+            // rounded corners at the bottom
+            sphere(r);
+            translate([189-2*r,      0,0]) sphere(r);
+            translate([189-2*r,131-2*r,0]) sphere(r);
+            translate([      0,131-2*r,0]) sphere(r);
+            // rounded corners at the top
+            translate([      0,      0,38.5]) cylinder(r=r,h=1);
+            translate([189-2*r,      0,38.5]) cylinder(r=r,h=1);
+            translate([189-2*r,131-2*r,38.5]) cylinder(r=r,h=1);
+            translate([      0,131-2*r,38.5]) cylinder(r=r,h=1);
+        };
+        // remove the inside of the cube
+        translate([d,d,d]) cube([189-2*d,131-2*d,40-2*d]);
+        // remove even more for the step at the top of the box
+        // with simple corners:
+//        translate([1,1,40-5.5]) cube([189-2,131-2,10]);
+        // more advanced: rounded inner corners with constant wall thickness
+        translate([d1+r1,d1+r1,40-5.5]) hull() {
+            translate([0,0,0]) cylinder(r=r1,h=10);
+            translate([189-2*d1-2*r1,            0,0]) cylinder(r=r1,h=10);
+            translate([189-2*d1-2*r1,131-2*d1-2*r1,0]) cylinder(r=r1,h=10);
+            translate([            0,131-2*d1-2*r1,0]) cylinder(r=r1,h=10);
+        }
+    };
+    // cornerposts 1.5mm wide, but with 0.1mm overlap
+    translate([    1.4,    1.4,1.4]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
+    translate([189-1.4,    1.4,1.4]) rotate([0,0,90]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
+    translate([189-1.4,131-1.4,1.4]) rotate([0,0,180]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
+    translate([    1.4,131-1.4,1.4]) rotate([0,0,270]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
+    };
+}
+
+/**
+ * triagular post for use as a corner post in the boxes
+ *
+ * Orientation: along the Z-axis, the triange extents into the first quadrant (pos. X and Y)
+ * Reference point: the rectengular corner at the bottom end
+ * Parameters:
+ *   - w: width of the two equal sides of the triange
+ *   - h: height of the post
+ */
+module cornerpost(w=1.5,h=1)
+{
+    linear_extrude(height=h)
+        polygon (points=[[0,0],[0,w],[w,0],[0,0]]);
+}
+
 
 
 // === interne Designelemente ======================
@@ -231,6 +711,135 @@ module Bauplatte(color="red",x=2,y=1)
 }
 
 
+/**
+  * Referenzpunkt: Mittelpunkt, Oberfläche der Innen/Flachseite
+  *
+  * FIXME: Griff müsste abgerundet sein
+  * FIXME: Unterseite ist nicht modelliert
+  *
+  * Größen:
+  *   - Höhe 8.7mm
+  *   - Durchmesser 25.5mm
+  *   - Dicke der unteren Scheibe: 2.2mm
+  * Referenzpunkt: Mittelpunkt, Oberfläche der Innen/Flachseite
+  */
+module Nabenoberteil(d1=6.6) {
+    color("Red") union() {
+    rotate_extrude(convexity = 10)
+    polygon( points=[
+        // top side profile:
+        // 8.7mm thick, 
+        // d=6.6mm inner hole,
+        // flange: d=11mm top side, d=14mm low side
+        // lower flange: d=25.5mm outer diameter, 2.2mm thick
+        [d1/2,8.7],[5.5,8.7],[7,2.2],[12.75,2.2],
+        // outer side profile:
+        // bottom side profile:
+        [12.75,0],[d1/2,0],[d1/2,8.7]
+    ] );
+    translate ([5.5,-1,0]) cube([7,2,8.6]);
+    translate ([-12.5,-1,0]) cube([7,2,8.6]);
+    }
+}
+
+/*
+ * Größen: Höhe=8.7-2.2+12.75=18.25mm
+ * Referenzpunkt: Mittelpunkt, Oberfläche der Innen/Flachseite die am Reifen anliegen wird.
+ */
+module Nabenunterteil() {
+    translate([0,0,-2.2]) Flachnabenunterteil();
+    rotate([180,0,0]) Nabenoberteil(d1=4);
+}
+
+
+/**
+ *
+ * Größen: d=25.5mm, Höhe 12.75mm
+ * Referenzpunkt: Mitte Unterseite
+ */
+module Flachnabenunterteil() {
+    color("Red")
+    difference() {
+        union() {
+            cylinder(d=25.5,h=2.21);
+            translate([0,0,2.2]) cylinder(d=20,h=2.56);
+            translate([0,0,4.75]) cylinder(d=9.5,h=3.01);
+            translate([0,0,7.75]) cylinder(d1=8,d2=6.5,h=5);
+        }
+        // cut the slots
+        translate([-5,-0.25,4.75]) cube([10,0.5,10]);
+        translate([-0.5,-3,4.75]) cube([1,6,10]);
+        // cut the center bore
+        cylinder(d=4,h=30,center=true);
+    }
+}
+
+
+/*
+ * facettierte Achse
+ *
+ * - entlang der Z-Achse
+ * - Facetten an den Enden 45°, je 0.5mm
+ * - keine vorgegebene Farbe
+ *
+ * Referenzpunkt: mittig in der Achse
+ */
+module achse(l=30) {
+    // main part
+    cylinder(d=4,h=l-1,center=true);
+    // top facet
+    translate([0,0,(l-1)/2-0.01]) cylinder(d1=3,d2=4,h=0.5);
+    // bottom facet
+    translate([0,0,-(l-1)/2+0.01]) cylinder(d1=4,d2=3,h=0.5);
+}
+
+
+/**
+ * inner teeth used to hold the tires or gears on the hub part
+ *
+ * Eine Gruppe von 6 Zähnen über 90°. Für einen vollständigen
+ * Reifen werden drei Gruppen mit je 120° Versatz gebraucht:
+ *
+        // add the inner teeth
+        reifenzaehne();
+        rotate([0,0,120]) reifenzaehne();
+        rotate([0,0,240]) reifenzaehne();
+ */
+module reifenzaehne() {
+    difference() {
+        rotate_extrude(angle=90) polygon(points=[[10,0.75],[11.5,0.75],[11.5,-0.75],[10,-0.75],[10,0.75]]);
+        for (a=[0:15:90]) {
+            rotate([0,0,a]) translate([10,0,0]) cylinder(d=2,h=1.6,center=true);
+        }
+    };
+}
+
+
+/**
+ * seitlicher Profilschlitz für die Grundplatte
+ * Schlitz entland der Z-Achse
+ * Referenzpunkt: mittig an der Aussenseite des Schlitzes
+ */
+module slot() {
+    translate([0,0,-0.1]) { // ensure an overlap of 0.1mm
+        cylinder(d=4,h=33.1);
+        translate([-2,-3.05,0]) cube([4,6.1,5.1]);
+        translate([-1.5,-3.05,0]) cube([3,6.1,25.1-0.5]);
+        translate([-2,-2.5,0]) cube([4,5,25.1]);
+        // eye candy: tiny depressions along the slot
+        translate([-3,-3.05,0]) cube([6,0.1,26.1]);
+        translate([-3,2.95,0]) cube([6,0.1,26.1]);
+    }
+}
+
+
+module logo() {
+    linear_extrude(1)
+        text("MM",size=3,halign="center",valign="center");
+}
+
+
+
 // === Testdarstellung ==============================
 
 // div. Designelemente
@@ -264,3 +873,38 @@ translate ([0,-140,0]) Bauplatte(color="red",x=4,y=2);
 translate ([0,-160,0]) Baustein5();
 translate ([20,-160,0]) Baustein7();
 translate ([40,-160,0]) Rollenlager15();
+translate ([60,-160,0]) Winkelstein60();
+
+translate ([0,-200,0]) Flachstein30();
+
+translate ([0,-220,0]) Seilrolle21x7();
+translate ([30,-220,0]) Nabenoberteil();
+translate ([60,-220,0]) Nabenunterteil();
+translate ([90,-220,0]) Flachnabenunterteil();
+
+translate ([0,-250,0]) Nabe();
+translate ([30,-250,0]) Flachnabe();
+translate ([60,-250,0]) Reifen30();
+translate ([90,-250,0]) {Nabe(); Reifen30();}
+
+translate ([0,-280,0]) Handkurbel();
+translate ([40,-280,0]) {
+    Nabe();
+    translate([0,0,3.3]) Handkurbel();
+}
+
+translate ([0,-310,0]) Klemmbuchse10();
+translate ([10,-310,0]) Klemmbuchse5();
+translate ([20,-310,0]) Klemmkupplung20();
+
+translate ([0,-320,0]) Metallachse30();
+translate ([10,-320,0]) Metallachse50();
+translate ([20,-320,0]) Metallachse60();
+translate ([30,-320,0]) Metallachse80();
+translate ([40,-320,0]) Metallachse110();
+
+translate ([0,-420,0]) Grundplatte90x90();
+
+// -------
+translate ([-250,0,0]) Box250();
+translate ([-250,-150,0]) Box250_50();
