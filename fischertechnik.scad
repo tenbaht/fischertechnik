@@ -396,6 +396,54 @@ module Reifen30() {
 
 
 /**
+ * 1966:31020 Klemmring Z36 m0,5 für Seiltrommel (rot)
+ *
+ * Referenzpunkt: mittig im Teil, Teil liegt flach in X/Y Ebene
+ * quality: 1 (outline only) FIXME
+ *
+ */
+module KlemmringZ36()
+{
+    color("red")
+    difference() {
+        cylinder(d=19,h=6.3,center=true);
+        // almost rectangular holes
+        for (i=[0,180])
+            rotate([0,0,i]) translate([0,5,0]) cube([4.5,4.5,10],center=true);
+        // hole
+        cylinder(d=4,h=7,center=true);
+    }
+}
+
+
+/**
+ * 1966:31016 Seiltrommel 15 (rot)
+ *
+ * Geometrie: Länge 15mm, Durchmesser innen knapp 8mm, aussen 15mm
+ * Referenzpunkt: Trommel steht senkrecht entlang der Z-Achse, Referenzpunkt ist mittig am unteren Ende
+ * quality: 5 (good, but some details missing)
+ */
+module Seiltrommel15() {
+    color("red")
+    difference() {
+        union () {
+            cylinder(d=8,h=15);
+            cylinder(d=15,h=1.5);
+            translate([0,0,15-1.5]) cylinder(d=15,h=1.5);
+            rotate([90,0,0]) flachnut(l=14);
+            translate([0,0,15]) rotate([-90,0,0]) flachnut(l=14);
+        };
+        // axle hole
+        cylinder(d=4,h=31,center=true);
+        // the gap in the middle of the flat connector
+        translate([-3,-3,15]) cube(6);
+        translate([-3,-3,-6]) cube(6);
+        // the small slot
+        translate([0,0,-0.1]) cube([10,0.5,16]);
+    };
+}
+
+/**
  * Slotlöcher am Anfang und Ende sind weniger tief
  * Vertiefungen rund um die Mittellöcher
  * Logo
@@ -490,13 +538,40 @@ module Box250_50() {
     translate([x2,1.5+31.5+1+31.5+1+16+1,1.4]) {
         compartment(31.5,dy=16,d=1,h=8+0.1);
         for (i=[0:1]) {
-            translate([8+15.5*i,0,0]) Winkelstein60();
+            translate([8+15.5*i,8,0]) Winkelstein60();
         };
     };
 
+    // Klemmring Z36
+    translate([x2,1.5+31.5+1+31.5+1+16+1+16+1,1.4]) {
+        // Es fehlen hier 2mm bei dy, weil die Verjüngung des
+        // Kastens nach unten noch fehlt.
+        // overall box
+        compartment(dx2,dy=18.5,d=1,h=8+0.1);
+        // small box for one roll
+        compartment(7,dy=18.5,d=1,h=12+0.1);
+        translate ([3.5,9.25,9.5]) rotate([0,90,0]) KlemmringZ36();
+    }
+    translate([x2+dx2-7,1.5+31.5+1+31.5+1+16+1+16+1,1.4]) {
+        compartment(7,dy=18.5,d=1,h=12+0.1);
+        translate ([3.5,9.25,9.5]) rotate([0,90,0]) KlemmringZ36();
+    }
+    // Seiltrommel 15
+    // Halterungen 11b/10h, Freiraum 5mm oben/unten, Abstand ca. 9mm
+    translate([x2+dx2/2, 1.5+31.5+1+31.5+1+16+1+16+1 +18.5/2 ,1.4]) {
+        // Es fehlen hier 2mm bei dy, weil die Verjüngung des
+        // Kastens nach unten noch fehlt.
+        for (i=[-4.5,4.5])
+            translate([0,i,0]) cube([11,1,10],center=true);
+        
+//        compartment(7,dy=18.5,d=1,h=12+0.1);
+//        translate ([3.5,9.25,9.5]) rotate([0,90,0])     
+        translate([7.5,0,7.5]) rotate([0,-90,0]) Seiltrommel15();
+    }
+
     // Seilrolle 21x7
     translate([x2,131-1.5-7.5,1.4]) {
-        compartment(dx2,dy=7.5,d=1,h=8+0.1);
+        compartment(dx2,dy=7.5,d=1,h=12+0.1);
         for (i=[1:2:3]) {
             translate([i*dx2/4,3.5,0]) rotate([90,0,0]) Seilrolle21x7();
         };
@@ -988,6 +1063,9 @@ translate ([30,-320,0]) Metallachse80();
 translate ([40,-320,0]) Metallachse110();
 
 translate ([0,-420,0]) Grundplatte90x90();
+
+translate ([0,-440,0]) KlemmringZ36();
+translate ([20,-440,0]) Seiltrommel15();
 
 // -------
 translate ([-250,0,0]) Box250();
