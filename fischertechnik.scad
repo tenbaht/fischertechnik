@@ -490,21 +490,28 @@ Box 189x131x40 u-tS neutral (grau)
 1975:37378 Box 189x131x40 50-2 (grau)
  */
 module Box250_50() {
-    // Koordinaten der einzelnen Teilfächer:
+    // Koordinaten der einzelnen Teilfächer.
+    // Orientierung des Kastens: Räder links
+
+    // Horizontal:
     dx3=76;         // Breite Fach Baustein30
     dx4=63;         // Breite Kleinkramfach
     dx1=189-2*1.5-dx3-dx4-2*1;  // Breite linker Rand
     dx2=46;         // Breite mittlere Fachreihe
+
     x1=1.5;         // linker Rand Innenraum
     x2=x1+dx1+1;    // Beginn mittlere Fachreihe
     x3=x2+dx2+1;    // Beginn Grundplatte
     x4=x2+dx3+1;    // Beginn Kleinkramfach
+
+    // Vertikal:
     dy1=31.5;       // Innenmaß Kleinkramfach/Baustein30
     dy2=31.5;       // Innenmaß Baustein15
     dy3=16;         // Innenmaß Winkelstein30
     dy4=16;         // Innenmaß Winkelstein60
     dy5=18.5;       // Innenmaß Seiltrommel
     dy6=7.5;        // Innenmaß Seilrolle
+
     y1=1.5;         // unterer Rand Innenraum
     y2=y1+dy1+1;    // Beginn Baustein15/Grundplatte
     y3=y2+dy2+1;    // Beginn Winkelstein30
@@ -616,6 +623,16 @@ module Box250_50() {
         };
     };
 
+    // Grundplatte
+    // FIXME: Die Koordinaten für oben und für rechts sind gepfuscht.
+    translate([x3,y2,1.4]) {
+        translate([15,-0.1,0]) cube([1,7.5+0.1,6+0.1]);
+        translate([189-x3-15,-0.1,0]) cube([1,7.5+0.1,6+0.1]);
+        translate([15,90-2,0]) cube([1,7.5+0.1,6+0.1]);//pfusch
+        translate([189-x3-15,90-2,0]) cube([1,7.5+0.1,6+0.1]);//pfusch
+        translate([1,1,6]) Grundplatte90x90();
+    };
+
     // 4xNabe und Rad
     for (i=[0:3]) translate([30,1.5+16+32*i,1.4]) {
         // ring to hold the tire
@@ -628,7 +645,39 @@ module Box250_50() {
         translate([0,0,3]) Reifen30();
         translate([0,0,14.8]) Nabe();
     }
+
+    // Halter Flachstein30
+    // 9mm von links. Innenraum 37x4, Höhe 17
+    // U-Profil: 7x7x1, aber Innenbreite eher 4.5?
+    // FIXME: Abstände eher geschätzt
+    translate([9,0.5,-0.1]) {
+        uprofil(7,7,17.1);
+        translate([7,3+37,0]) rotate([0,0,180]) uprofil(7,7,17.1);
+        translate([3.5,5,0.1]) rotate([90,0,90]) Flachstein30();
+    };
+    translate([9,131-40.5,-0.1]) {
+        uprofil(7,7,17.1);
+        translate([7,3+37,0]) rotate([0,0,180]) uprofil(7,7,17.1);
+        translate([3.5,5,0.1]) rotate([90,0,90]) Flachstein30();
+    };
 }
+
+/**
+ * U-Profil
+ *
+ * Parameter:
+ * - b: Breite (X-Richtung, Basis des Profils)
+ * - h: Höhe (Y-Richtung, die beiden Schenkel)
+ * - l: Länge (Z-Richtung)
+ */
+module uprofil(b=7,h=7,l=17)
+{
+    cube([1,h,l]);
+    cube([b,1,l]);
+    translate([b-1,0,0]) cube([1,h,l]);
+}
+
+
 
 /*
  * Fachunterteilung
