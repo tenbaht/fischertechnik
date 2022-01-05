@@ -515,7 +515,19 @@ module compartment(dx=10,dy=10,d=1,h=10) {
 }
 
 
-
+/**
+ * Box 250: außen 189x131x40, innen 186x128x38.5 (nutzbar 33mm)
+ *
+ * Nutzbare Innenhöhe 33mm, wenn der Deckelbereich freigehalten
+ * werden soll.
+ *
+ * Außenmaß unten 128.5, oben 130.5 => stapelbar
+ * Wandstärke 1.5mm
+ * Deckelaussparung 5.5mm hoch, Wandstärke hier 1mm
+ * Eckenradius außen 2mm
+ * Eckverstärkungen (Eckpfosten) 1.5x1.5mm
+ * Wandstärke der Fachteiler 1mm
+ */
 module Box250() {
     r=2.0;          // outer corner radius
     d=1.5;          // wall thickness
@@ -557,6 +569,36 @@ module Box250() {
     };
 }
 
+
+
+
+// === interne Designelemente ======================
+
+/**
+ * Subtraktionskörper für eine Rundnut
+ *
+ * Ausrichtung: entlang der Z-Achse
+ * Referenzpunkt: an der Oberfläche in der Mitte der geplanten Nut
+ */
+module nut(l=30.1,d=4) {
+    cube([3,2,l],center=true);
+    translate ([0,-2.1,0]) cylinder(h=l,d=d,center=true);
+}
+
+/**
+ * Subtraktionskörper für eine Flachnut
+ *
+ * Ausrichtung: entlang der X-Achse
+ * Referenzpunkt: an der Oberfläche in der Mitte der geplanten Nut
+ */
+module flachnut(l=30.1,d=4) {
+    intersection() {
+        nut(l=l,d=d);
+        cube([5,2.8*2,l],center=true);
+    }
+}
+
+// Additionselemente
 /**
  * triagular post for use as a corner post in the boxes
  *
@@ -565,33 +607,13 @@ module Box250() {
  * Parameters:
  *   - w: width of the two equal sides of the triange
  *   - h: height of the post
+ *   - center: false: post extents from z=0 to z=h
+ *             true: post extents from z=-h/2 to z=h/2
  */
-module cornerpost(w=1.5,h=1)
+module cornerpost(w=1.5,h=1,center=false)
 {
-    linear_extrude(height=h)
+    linear_extrude(height=h,center)
         polygon (points=[[0,0],[0,w],[w,0],[0,0]]);
-}
-
-
-
-// === interne Designelemente ======================
-
-// Subtraktionskörper für eine Rundnut
-// entlang der Z-Achse
-// Referenzpunkt ist an der Oberfläche in der Mitte der geplanten Nut
-module nut(l=30.1,d=4) {
-    cube([3,2,l],center=true);
-    translate ([0,-2.1,0]) cylinder(h=l,d=d,center=true);
-}
-
-// Subtraktionskörper für eine Flachnut
-// entlang der X-Achse
-// Referenzpunkt ist an der Oberfläche in der Mitte der geplanten Nut
-module flachnut(l=30.1,d=4) {
-    intersection() {
-        nut(l=l,d=d);
-        cube([5,2.8*2,l],center=true);
-    }
 }
 
 /**
@@ -654,11 +676,25 @@ module Grundbaustein(color="Silver",len=30,rastnasen=1,rundnase=false,querloch=f
     color (color) difference() {
         // der Grundkörper
         translate ([-7.5,-7.5]) cube([15,15,len]);
+//translate([7.6,-7.6,-0.1]) rotate([0,270,0]) cornerpost(w=1,h=15.2,center=true);
         // die vier Längsnuten
         for (a=[0:90:270]) {
-            rotate ([0,0,a])
+            rotate ([0,0,a]) {
                 translate ([0,7.5,len/2])
                     nut();
+                // chamfer the corners
+                // a) sides
+                translate([-7.6,-7.6,-0.1])
+                    cornerpost(w=0.5,h=len+0.2);
+                // b) bottom
+                translate([7.6,-7.6,-0.1])
+                    rotate([0,270,0])
+                        cornerpost(w=0.5,h=15.2,center=true);
+                // c) top
+                translate([-7.6,-7.6,len+0.1])
+                    rotate([0,90,0])
+                        cornerpost(w=0.5,h=15.2,center=true);
+            }
         }
         // ggf. das Querloch
         if (querloch) {
