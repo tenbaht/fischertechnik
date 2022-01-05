@@ -125,45 +125,60 @@ module Rollenlager15() {
 /**
  * 1966:31010 Winkelstein 60° (rot)
  *
- * FIXME: Abstand -4 für translate von der Mittelachse nur geschätzt. Nachrechnen!
- *
+ * Referenzpunkt: mittig auf der Seite mit der Flachnut
  */
 module Winkelstein60() {
-    color("red") {
-        linear_extrude(height=15) circle(r=8.66,$fn=3);
-        for (a=[0:120:240]) {
-            rotate ([0,0,a])
-            translate([-4,0,7.5])
-            rotate([0,270,0])
-            rastnase();
-        }
+    color("Red") {
+        winkelstein(r=7.5,a=60);
+        translate([7.5,0])
+            rotate([0,60,0])
+                translate([-7.5,0])
+                    rastnase();
     };
 }
 
 /**
  * 1966:31011 Winkelstein 30° (rot)
  *
- * FIXME: alles nur geschätzt. Nachrechnen!
+ * Referenzpunkt: mittig auf der Seite mit der Flachnut
+ * Geometrie: 30° Segment eines Kreisbogens mit r=15mm
+ * Die Rastnase und die Flachnut liegen genau auf diesem Radius.
+ *
  *
  */
 module Winkelstein30() {
-    color("red") {
-        rotate([90,0,0])
-        linear_extrude(height=15) polygon(points=[
-            [-5.5,0],[5.5,0],[2,14.5],[-2,14.5],
-            [-5.5,0]
-        ]);
-/*
-        circle(r=8.66,$fn=3);
-        for (a=[0:120:240]) {
-            rotate ([0,0,a])
-            translate([-4,0,7.5])
-            rotate([0,270,0])
-            rastnase();
-        }
-*/
-    };
+    winkelstein(r=15,a=30);
 }
+
+
+/**
+ * 1983:31981 Winkelstein 15° (rot)
+ *
+ * Referenzpunkt: mittig auf der Seite mit der Flachnut
+ * Geometrie: 15° Segment eines Kreisbogens mit r=22.5mm
+ * Die Rastnase und die Flachnut liegen genau auf diesem Radius.
+ *
+ *
+ */
+module Winkelstein15() {
+    winkelstein(r=22.5,a=15);
+}
+
+
+/**
+ * 1984:32071 Winkelstein 7.5° (rot)
+ *
+ * Referenzpunkt: mittig auf der Seite mit der Flachnut
+ * Geometrie: 7.5° Segment eines Kreisbogens mit r=30mm
+ * Die Rastnase und die Flachnut liegen genau auf diesem Radius.
+ *
+ * FIXME: Der Radius ist nur geraten, ich hatte keine Teile zum
+ * Nachmessen!
+ */
+module Winkelstein7() {
+    winkelstein(r=30,a=7.5);
+}
+
 
 /**
  * 1966:31013 Flachstein 30 (rot)
@@ -463,8 +478,11 @@ module Box250_50() {
     // Winkelstein 30
     translate([x2,1.5+31.5+1+31.5+1,1.4]) {
         compartment(dx2,dy=16,d=1,h=8+0.1);
-        for (i=[1:4]) {
-            translate([11.5*(i-0.5),15,0]) Winkelstein30();
+        for (i=[0:3]) {
+            translate([11.2*i,8,0])
+                // rotate the angular block upright
+                rotate([0,105,0]) translate([-7.5,0])
+                Winkelstein30();
         };
     };
 
@@ -676,7 +694,6 @@ module Grundbaustein(color="Silver",len=30,rastnasen=1,rundnase=false,querloch=f
     color (color) difference() {
         // der Grundkörper
         translate ([-7.5,-7.5]) cube([15,15,len]);
-//translate([7.6,-7.6,-0.1]) rotate([0,270,0]) cornerpost(w=1,h=15.2,center=true);
         // die vier Längsnuten
         for (a=[0:90:270]) {
             rotate ([0,0,a]) {
@@ -852,6 +869,34 @@ module reifenzaehne() {
 
 
 /**
+ * universeller Winkelstein
+ *
+ * Referenzpunkt: mittig auf der Seite mit der Flachnut
+ *
+ * Geometrie: Segment eines Kreisbogens mit Radius r.
+ * Typische Werte: Winkelstein30: r=15, Winkelstein15: r=22.5
+ *
+ * Die Rastnase und die Flachnut liegen genau auf diesem Radius.
+ *
+ * Parameter:
+ *   - r: Radius des Kreisbogens entlang der Rastnase.
+ *   - a: Winkel
+ */
+module winkelstein(r,a) {
+    color("red") {
+        difference() {
+            translate([-r,0]) {
+                rotate([90,0,0]) rotate_extrude(angle=a,$fn=2)
+                    translate ([r,0]) square(15,center=true);
+                rotate([0,-a,0]) translate([r,0]) rastnase();
+            }
+            rotate([-90,0,0]) flachnut();
+        }
+    };
+}
+
+
+/**
  * seitlicher Profilschlitz für die Grundplatte
  * Schlitz entland der Z-Achse
  * Referenzpunkt: mittig an der Aussenseite des Schlitzes
@@ -910,6 +955,9 @@ translate ([0,-160,0]) Baustein5();
 translate ([20,-160,0]) Baustein7();
 translate ([40,-160,0]) Rollenlager15();
 translate ([60,-160,0]) Winkelstein60();
+translate ([80,-160,0]) Winkelstein30();
+translate ([100,-160,0]) Winkelstein15();
+translate ([120,-160,0]) Winkelstein7();
 
 translate ([0,-200,0]) Flachstein30();
 
