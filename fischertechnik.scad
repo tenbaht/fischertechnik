@@ -490,20 +490,34 @@ Box 189x131x40 u-tS neutral (grau)
 1975:37378 Box 189x131x40 50-2 (grau)
  */
 module Box250_50() {
-    dx3=76;
-    dx4=63;
-    dx1=189-2*1.5-dx3-dx4-2*1;
-    dx2=46;
-    x1=1.5;
-    x2=x1+dx1+1;
-    x4=x2+dx3+1;
+    // Koordinaten der einzelnen Teilfächer:
+    dx3=76;         // Breite Fach Baustein30
+    dx4=63;         // Breite Kleinkramfach
+    dx1=189-2*1.5-dx3-dx4-2*1;  // Breite linker Rand
+    dx2=46;         // Breite mittlere Fachreihe
+    x1=1.5;         // linker Rand Innenraum
+    x2=x1+dx1+1;    // Beginn mittlere Fachreihe
+    x3=x2+dx2+1;    // Beginn Grundplatte
+    x4=x2+dx3+1;    // Beginn Kleinkramfach
+    dy1=31.5;       // Innenmaß Kleinkramfach/Baustein30
+    dy2=31.5;       // Innenmaß Baustein15
+    dy3=16;         // Innenmaß Winkelstein30
+    dy4=16;         // Innenmaß Winkelstein60
+    dy5=18.5;       // Innenmaß Seiltrommel
+    dy6=7.5;        // Innenmaß Seilrolle
+    y1=1.5;         // unterer Rand Innenraum
+    y2=y1+dy1+1;    // Beginn Baustein15/Grundplatte
+    y3=y2+dy2+1;    // Beginn Winkelstein30
+    y4=y3+dy3+1;    // Beginn Winkelstein60
+    y5=y4+dy4+1;    // Beginn Seiltrommel
 
     Box250();
-    translate([189-1.5-63,1.5,1.4]) compartment(dx=63,dy=31.5,d=1,h=32.5+0.1);
+    // Kleinkramfach
+    translate([189-1.5-dx4,1.5,1.4]) compartment(dx=dx4,dy=dy1,d=1,h=32.5+0.1);
     // Grundbausteine 30
 //    translate([189-1.5-63-1-76,1.5,1.4]) {
-    translate([x2,1.5,1.4]) {
-        compartment(dx=76,dy=31.5,d=1,h=10+0.1);
+    translate([x2,y1,1.4]) {
+        compartment(dx=dx3,dy=dy1,d=1,h=10+0.1);
         translate([7.5,   8,30]) rotate([180,0,0]) Baustein30viereckloch();
         translate([7.5,23.5,30]) rotate([180,0,0])Baustein30viereckloch();
         for (i=[1:4]) {
@@ -513,71 +527,96 @@ module Box250_50() {
     };
 
     // Grundbausteine 15
-    translate([x2,1.5+31.5+1,1.4]) {
+    translate([x2,y2,1.4]) {
         compartment(dx2,dy=31.5,d=1,h=10+0.1);
-        translate([7.5, 8,15]) rotate([180,0,0]) Baustein15_2rz();
-        translate([7.5,23.5,15]) rotate([180,0,0])Baustein15_2z();
+        translate([7.5, 8,15])
+            rotate([180,0,0])
+                Baustein15_2rz();
+        translate([7.5,23.5,15])
+            rotate([180,0,0])
+                Baustein15_2z();
         for (i=[1:2]) {
-            translate([7.5+15.1*i, 8,15]) rotate([180,0,0]) Baustein15();
-            translate([7.5+15.1*i,23.5,15]) rotate([180,0,0]) Baustein15();
+            translate([7.5+15.1*i, 8,15])
+                rotate([180,0,0])
+                    Baustein15();
+            translate([7.5+15.1*i,23.5,15])
+                rotate([180,0,0])
+                    Baustein15();
         };
     };
 
     // Winkelstein 30
-    translate([x2,1.5+31.5+1+31.5+1,1.4]) {
-        compartment(dx2,dy=16,d=1,h=8+0.1);
+    translate([x2,y3,1.4]) {
+        compartment(dx2,dy=dy3,d=1,h=8+0.1);
         for (i=[0:3]) {
-            translate([11.2*i,8,0])
+            translate([11.2*i,dy3/2,0])
                 // rotate the angular block upright
                 rotate([0,105,0]) translate([-7.5,0])
                 Winkelstein30();
         };
     };
 
-    // Winkelstein 60
-    translate([x2,1.5+31.5+1+31.5+1+16+1,1.4]) {
-        compartment(31.5,dy=16,d=1,h=8+0.1);
+    // Winkelstein 60, Rollenlager
+    translate([x2,y4,1.4]) {
+        compartment(31.5,dy=dy4,d=1,h=8+0.1);
         for (i=[0:1]) {
-            translate([8+15.5*i,8,0]) Winkelstein60();
+            translate([8+15.5*i,dy4/2,0]) Winkelstein60();
         };
+
+        // Rollenlager
+        // Die Stützen sind 3mm hoch, 1mm breit 
+        // und 3 bzw. 5mm lang.
+        // Abstand vom Rand auch genau 3mm.
+        translate([31.5+1+3,0,0])        cube([1,3,3]);
+        translate([31.5+1+3,dy4-3,0])    cube([1,3,3]);
+        translate([dx2+1-5,dy4/2-0.5,0]) cube([5,1,3]);
+        translate([dx2-6,dy4/2,3]) rotate([0,0,90])
+            Rollenlager15();
     };
 
-    // Klemmring Z36
-    translate([x2,1.5+31.5+1+31.5+1+16+1+16+1,1.4]) {
-        // Es fehlen hier 2mm bei dy, weil die Verjüngung des
-        // Kastens nach unten noch fehlt.
+    // Klemmringe und Seiltrommel
+    translate([x2,y5,1.4]) {
         // overall box
-        compartment(dx2,dy=18.5,d=1,h=8+0.1);
-        // small box for one roll
-        compartment(7,dy=18.5,d=1,h=12+0.1);
-        translate ([3.5,9.25,9.5]) rotate([0,90,0]) KlemmringZ36();
-    }
-    translate([x2+dx2-7,1.5+31.5+1+31.5+1+16+1+16+1,1.4]) {
-        compartment(7,dy=18.5,d=1,h=12+0.1);
-        translate ([3.5,9.25,9.5]) rotate([0,90,0]) KlemmringZ36();
-    }
-    // Seiltrommel 15
-    // Halterungen 11b/10h, Freiraum 5mm oben/unten, Abstand ca. 9mm
-    translate([x2+dx2/2, 1.5+31.5+1+31.5+1+16+1+16+1 +18.5/2 ,1.4]) {
+        compartment(dx2,dy=dy5,d=1,h=8+0.1);
         // Es fehlen hier 2mm bei dy, weil die Verjüngung des
         // Kastens nach unten noch fehlt.
-        for (i=[-4.5,4.5])
-            translate([0,i,0]) cube([11,1,10],center=true);
+
+        // left roll:
+        compartment(7,dy=dy5,d=1,h=12+0.1);
+        translate ([3.5,9.25,9.5]) rotate([0,90,0])
+            KlemmringZ36();
+
+        // right roll:
+        translate([dx2-7,0,0]) {
+            compartment(7,dy=dy5,d=1,h=12+0.1);
+            translate ([3.5,9.25,9.5]) rotate([0,90,0])
+                KlemmringZ36();
+        }
+
+        // Seiltrommel 15
+        // Halterungen 11b/10h, Freiraum 5mm oben/unten, Abstand ca. 9mm
+        translate([dx2/2, dy5/2, 1.4]) {
+            // Es fehlen hier 2mm bei dy, weil die Verjüngung
+            // des Kastens nach unten noch fehlt.
+            for (i=[-4.5,4.5])
+                translate([0,i,0])
+                    cube([11,1,10],center=true);
         
-//        compartment(7,dy=18.5,d=1,h=12+0.1);
-//        translate ([3.5,9.25,9.5]) rotate([0,90,0])     
-        translate([7.5,0,7.5]) rotate([0,-90,0]) Seiltrommel15();
+            translate([7.5,0,7.5])
+                rotate([0,-90,0])
+                    Seiltrommel15();
+        }
     }
 
-    // Seilrolle 21x7
+    // 2xSeilrolle 21x7
     translate([x2,131-1.5-7.5,1.4]) {
-        compartment(dx2,dy=7.5,d=1,h=12+0.1);
-        for (i=[1:2:3]) {
-            translate([i*dx2/4,3.5,0]) rotate([90,0,0]) Seilrolle21x7();
+        compartment(dx2,dy=dy6,d=1,h=12+0.1);
+        for (i=[1,3]) {
+            translate([i*dx2/4,dy6/2,0]) rotate([90,0,0]) Seilrolle21x7();
         };
     };
 
-    // Nabe und Rad
+    // 4xNabe und Rad
     for (i=[0:3]) translate([30,1.5+16+32*i,1.4]) {
         // ring to hold the tire
         difference() {
