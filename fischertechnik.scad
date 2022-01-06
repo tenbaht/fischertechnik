@@ -710,47 +710,8 @@ module compartment(dx=10,dy=10,d=1,h=10) {
  * Wandstärke der Fachteiler 1mm
  */
 module Box250() {
-    r=2.0;          // outer corner radius
-    d=1.5;          // wall thickness
-    d1=1.0;         // wall thickness for the upper part
-    r1=r-(d-d1);    // inner corner radius for the upper part
-    color("Silver") {
-    difference() {
-        // cube([189,131,40]) with round corners r=1
-        translate([r,r,r]) hull() {
-            // rounded corners at the bottom
-            sphere(r);
-            translate([189-2*r,      0,0]) sphere(r);
-            translate([189-2*r,131-2*r,0]) sphere(r);
-            translate([      0,131-2*r,0]) sphere(r);
-            // rounded corners at the top
-            translate([      0,      0,38.5]) cylinder(r=r,h=1);
-            translate([189-2*r,      0,38.5]) cylinder(r=r,h=1);
-            translate([189-2*r,131-2*r,38.5]) cylinder(r=r,h=1);
-            translate([      0,131-2*r,38.5]) cylinder(r=r,h=1);
-        };
-        // remove the inside of the cube
-        translate([d,d,d]) cube([189-2*d,131-2*d,40-2*d]);
-        // remove even more for the step at the top of the box
-        // with simple corners:
-//        translate([1,1,40-5.5]) cube([189-2,131-2,10]);
-        // more advanced: rounded inner corners with constant wall thickness
-        translate([d1+r1,d1+r1,40-5.5]) hull() {
-            translate([0,0,0]) cylinder(r=r1,h=10);
-            translate([189-2*d1-2*r1,            0,0]) cylinder(r=r1,h=10);
-            translate([189-2*d1-2*r1,131-2*d1-2*r1,0]) cylinder(r=r1,h=10);
-            translate([            0,131-2*d1-2*r1,0]) cylinder(r=r1,h=10);
-        }
-    };
-    // cornerposts 1.5mm wide, but with 0.1mm overlap
-    translate([    1.4,    1.4,1.4]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
-    translate([189-1.4,    1.4,1.4]) rotate([0,0,90]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
-    translate([189-1.4,131-1.4,1.4]) rotate([0,0,180]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
-    translate([    1.4,131-1.4,1.4]) rotate([0,0,270]) cornerpost(h=40-5.5-1.5+0.1,w=1.6);
-    };
+    stapelbox(topx=189,topy=131,h=40);
 }
-
-
 
 
 // === interne Designelemente ======================
@@ -1082,6 +1043,109 @@ module logo() {
         text("MM",size=3,halign="center",valign="center");
 }
 
+
+/**
+ * universelle Stapelbox
+ *
+ * topx, topy, h: außen oben 189x130x40 (sollte eigentlich 131 sein?)
+ * dw: außen unten 2.5mm weniger: 186.5x127.5
+ * innen unten 2x1.5mm weniger: 183.5x124.5x38.5 (nutzbar 33mm)
+ *
+ * Nutzbare Innenhöhe 33mm, wenn der Deckelbereich freigehalten
+ * werden soll.
+ *
+ * Außenmaß unten 128.5, oben 130.5 => stapelbar
+ * rim: Deckelaussparung 5.5mm hoch
+ * d: Wandstärke 1.5mm
+ * d1: Wandstärke im Bereich der Deckelaussparung 1mm
+ * r: Eckenradius außen 2mm
+ * c: Eckverstärkungen (Eckpfosten) 1.5x1.5mm
+ *
+ * Wandstärke der Fachteiler 1mm
+ */
+module stapelbox(topx=189,topy=131,h=40) {
+//    topx=189;       // outer width at the top
+//    topy=131;       // outer depth at the top
+//    h=40;           // total height
+    r=2.0;          // outer corner radius
+    d=1.5;          // wall thickness
+    d1=1.0;         // wall thickness for the upper part
+    rim=5.5;        // height of the thinner upper part
+    dw=1.25;        // inward distance on each side at the bottom
+    r1=r-(d-d1);    // inner corner radius for the upper part
+    c=1.5;          // chamfer size for the inner corners
+                    // (distance on each side of the corner)
+
+    // Array with the coordinates of the bottom corners
+            // rounded corners at the bottom
+            // in order to be stapelable, the botton needs to be
+            // smaller than the top by the top wall thickness d1
+    bottom_points = [
+            [         dw,         dw,0],
+            [topx-2*r-dw,         dw,0],
+            [topx-2*r-dw,topy-2*r-dw,0],
+            [         dw,topy-2*r-dw,0]
+    ];
+
+    // Array with the coordinates of the top corners
+            // rounded corners at the top
+            // The top 1mm is straight. This could be changed.
+    top_points = [
+            [       0,       0,h-r-rim],
+            [topx-2*r,       0,h-r-rim],
+            [topx-2*r,topy-2*r,h-r-rim],
+            [       0,topy-2*r,h-r-rim]
+    ];
+
+    // size difference from [topx,topy] and height for
+    // defining the inner volume
+    // The top plane is smaller only by the wall thickness and
+    // the chamfer size (because the offset() command is used),
+    // the bottom plane is even smaller by the amount of dw on
+    // every side.
+    inner_volume = [
+            [d+2*c,   d+2*c,    h],     // top plane
+            [d+dw+2*c,d+dw+2*c, d]      // bottom plane
+    ];
+
+    color("Silver")
+    difference() {
+        // the main box body with round corners
+        translate([r,r,r]) hull() {
+            // rounded corners at the bottom
+            for (p=bottom_points) translate(p) sphere(r);
+            // rounded corners at the top
+            // The rim part is straight. This could be changed
+            // by using sphere() instead of cylinder.
+            for (p=top_points) translate(p) cylinder(r=r,h=rim);
+        };
+        // now cut off the top half of the top rounding
+//        translate([0,0,h]) cube([topx,topy,r+1]);
+
+        // subtract the inner volume
+        hull() {
+            // v2: use the values from an array
+            // two planes define the volume, offset() is used
+            // to chamfer the corners. Make sure to handle the
+            // resulting increased size.
+            for (p=inner_volume)
+                translate(p)
+                    linear_extrude(1)
+                        offset(delta=2*c,chamfer=true)
+                            square(size=[topx,topy]-2*p);
+        };
+
+        // remove even more for the step at the top of the box
+        // rounded inner corners with constant wall thickness
+        translate([topx/2,topy/2,h-5.5])
+            linear_extrude(6)
+                offset(r=r1)
+                    square(size=[
+                        topx-2*d1-2*r1,
+                        topy-2*d1-2*r1],center=true
+                    );
+    };
+}
 
 
 // === Testdarstellung ==============================

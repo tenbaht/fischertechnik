@@ -30,6 +30,12 @@ Sondertyp 74L
 
 ## andere Libraries und Teile
 
+https://github.com/revarbat/BOSL2/wiki/Topics
+Große Library mit Zusatzfunktionen z.B. für Assemblies. Teile können als
+Attachments aneinander montiert und gemeinsam bewegt werden, bleiben aber
+trotzdem unabhängig.
+
+
 https://github.com/Karijn/FisherParts
 Sehr flexible Definition von eigenen Teilen. Die Standard-Blöcke sind dann
 nur vordefinierte Spezialfälle. Die Statikstreben scheinen auch enthalten zu
@@ -51,3 +57,27 @@ r2-2ar+a2+dx2-r2= 0 = a2+dx2-2ar
 Länge der hinteren Fischhäfte incl. Schwanz = b
 b2+(r-2a)^2=r2
 b2+r2-4ar+4a2= r2 = a2+dx2-2ar
+
+
+## Tipp und Design-Stragien
+
+https://hackaday.com/2018/02/13/openscad-tieing-it-together-with-hull/
+Lochplatten ganz fix definiert:
+points = [ [0,0,0], [10,0,0], [0,10,0], [10,10,0] ];
+module cylinders(points, diameter, thickness){
+    for (p=points){
+        translate(p) cylinder(d=diameter, h=thickness, center=true);
+    }
+}
+ 
+module plate(points, diameter, thickness, hole_diameter){
+    difference(){
+        hull() cylinders(points, diameter, thickness);
+        cylinders(points, hole_diameter, thickness+1);
+    }
+}
+ 
+module bar(length, width, thickness, hole_diameter){
+    plate([[0,0,0], [length,0,0]], width, thickness, hole_diameter);
+}
+
