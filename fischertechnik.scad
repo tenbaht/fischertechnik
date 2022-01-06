@@ -482,6 +482,8 @@ module Grundplatte90x90(l=90,b=90) {
     translate([13,b-32,5.5]) logo();
 }
 
+/* === leere Kästen ======================================= */
+
 /**
 Box 262x189x40 hobbywelt (grau)
 Box 189x131x40 u-tS neutral (grau)
@@ -489,20 +491,64 @@ Box 189x131x40 u-tS neutral (grau)
 1975:37387 Box 189x131x40 50-1 (grau)
 1975:37378 Box 189x131x40 50-2 (grau)
  */
+
+/**
+ * Box 250: außen 189x131x40, innen 186x128x38.5 (nutzbar 33mm)
+ *
+ * Nutzbare Innenhöhe 33mm, wenn der Deckelbereich freigehalten
+ * werden soll.
+ *
+ * Außenmaß unten 128.5, oben 130.5 => stapelbar
+ * Wandstärke 1.5mm
+ * Deckelaussparung 5.5mm hoch, Wandstärke hier 1mm
+ * Eckenradius außen 2mm
+ * Eckverstärkungen (Eckpfosten) 1.5x1.5mm
+ * Wandstärke der Fachteiler 1mm
+ */
+module Box250() {
+    stapelbox(topx=189,topy=131,h=40);
+}
+
+module Box500() {
+    stapelbox(topx=262,topy=189,h=40);
+}
+
+
+/* === gefüllte Kästen ==================================== */
+
+/*
+ * Berechnung der Positionen:
+ * Außenmaß 189x131, 1.5mm Wandstärke => Innenmaß 186x128
+ * Es gibt aber noch die Stapelschräge von 1.25mm pro Seite,
+ * deshalb ist der Innenraum am Boden nur 183.5x125.5.
+ *
+ * Die Fachteiler müssen entlang der Außenseiten offen bleiben
+ * um nicht mit ihren senkrechten Außenwänden durch die
+ * Grundschale durchzustechen.
+ * Trotzdem bleibt noch das Problem mit den senkrecht
+ * auftreffenden Wänden.
+ *
+ * Damit sie nicht in Bodennähe durchstechen wird an den
+ * Außenwänden noch ein Rand von jeweils 1mm vorgesehen,
+ * es ergibt sich das kalkulatorische Innenmaß von 184x126 bei
+ * einer kalkulatorischen Wandstärke von 2.5mm.
+ *
+ */
 module Box250_50() {
     // Koordinaten der einzelnen Teilfächer.
     // Orientierung des Kastens: Räder links
 
     // Horizontal:
+    dx1=43;//189-2*1.5-dx3-dx4-2*1;  // Breite linker Rand
+    dx2=46;         // Breite mittlere Fachreihe
     dx3=76;         // Breite Fach Baustein30
     dx4=63;         // Breite Kleinkramfach
-    dx1=189-2*1.5-dx3-dx4-2*1;  // Breite linker Rand
-    dx2=46;         // Breite mittlere Fachreihe
 
-    x1=1.5;         // linker Rand Innenraum
+    x1=1.5+1;       // linker Rand Innenraum oben, 1mm padding für Schräge
     x2=x1+dx1+1;    // Beginn mittlere Fachreihe
     x3=x2+dx2+1;    // Beginn Grundplatte
     x4=x2+dx3+1;    // Beginn Kleinkramfach
+    x5=x4+dx4;      // kalk. rechter Rand Innenraum
 
     // Vertikal:
     dy1=31.5;       // Innenmaß Kleinkramfach/Baustein30
@@ -512,34 +558,41 @@ module Box250_50() {
     dy5=18.5;       // Innenmaß Seiltrommel
     dy6=7.5;        // Innenmaß Seilrolle
 
-    y1=1.5;         // unterer Rand Innenraum
+    y1=1.5+1;       // unterer Rand Innenraum, 1mm padding für Schräge
     y2=y1+dy1+1;    // Beginn Baustein15/Grundplatte
     y3=y2+dy2+1;    // Beginn Winkelstein30
     y4=y3+dy3+1;    // Beginn Winkelstein60
     y5=y4+dy4+1;    // Beginn Seiltrommel
+    y6=y5+dy5+1;    // Beginn Seilrolle
+    y7=y6+dy6;      // kalk. oberer Rand Innenraum
 
     Box250();
     // Kleinkramfach
-    translate([189-1.5-dx4,1.5,1.4]) compartment(dx=dx4,dy=dy1,d=1,h=32.5+0.1);
+    translate([x4,y1,1.4])
+        compartment(dx=dx4,dy=dy1,d=1,h=33+0.1,open=[0,1,1,0]);
+
     // Grundbausteine 30
-//    translate([189-1.5-63-1-76,1.5,1.4]) {
     translate([x2,y1,1.4]) {
         compartment(dx=dx3,dy=dy1,d=1,h=10+0.1);
-        translate([7.5,   8,30]) rotate([180,0,0]) Baustein30viereckloch();
-        translate([7.5,23.5,30]) rotate([180,0,0])Baustein30viereckloch();
+        translate([7.5,   8,30])
+            rotate([180,0,0]) Baustein30viereckloch();
+        translate([7.5,23.5,30])
+            rotate([180,0,0])Baustein30viereckloch();
         for (i=[1:4]) {
-            translate([7.5+15.1*i,   8,30]) rotate([180,0,0]) Baustein30();
-            translate([7.5+15.1*i,23.5,30]) rotate([180,0,0]) Baustein30();
+            translate([7.5+15.1*i,   8,30])
+                rotate([180,0,0]) Baustein30();
+            translate([7.5+15.1*i,23.5,30])
+                rotate([180,0,0]) Baustein30();
         };
     };
 
     // Grundbausteine 15
     translate([x2,y2,1.4]) {
-        compartment(dx2,dy=31.5,d=1,h=10+0.1);
-        translate([7.5, 8,15])
+        compartment(dx2,dy=dy2,d=1,h=10+0.1);
+        translate([7.5, 8,15+2.8])
             rotate([180,0,0])
                 Baustein15_2rz();
-        translate([7.5,23.5,15])
+        translate([7.5,23.5,15+2.8])
             rotate([180,0,0])
                 Baustein15_2z();
         for (i=[1:2]) {
@@ -585,30 +638,22 @@ module Box250_50() {
     translate([x2,y5,1.4]) {
         // overall box
         compartment(dx2,dy=dy5,d=1,h=8+0.1);
-        // Es fehlen hier 2mm bei dy, weil die Verjüngung des
-        // Kastens nach unten noch fehlt.
 
-        // left roll:
-        compartment(7,dy=dy5,d=1,h=12+0.1);
-        translate ([3.5,9.25,9.5]) rotate([0,90,0])
-            KlemmringZ36();
-
-        // right roll:
-        translate([dx2-7,0,0]) {
-            compartment(7,dy=dy5,d=1,h=12+0.1);
-            translate ([3.5,9.25,9.5]) rotate([0,90,0])
-                KlemmringZ36();
-        }
-
+        // two rolls on left and right:
+        for (i=[0,dx2-7])
+            translate([i,0,0]) {
+                compartment(7,dy=dy5,d=1,h=12+0.1);
+                translate ([3.5,9.25,9.5])
+                    rotate([0,90,0]) KlemmringZ36();
+            };
+                
         // Seiltrommel 15
         // Halterungen 11b/10h, Freiraum 5mm oben/unten, Abstand ca. 9mm
         translate([dx2/2, dy5/2, 1.4]) {
-            // Es fehlen hier 2mm bei dy, weil die Verjüngung
-            // des Kastens nach unten noch fehlt.
             for (i=[-4.5,4.5])
-                translate([0,i,0])
+                translate([0,i,5])
                     cube([11,1,10],center=true);
-        
+
             translate([7.5,0,7.5])
                 rotate([0,-90,0])
                     Seiltrommel15();
@@ -616,21 +661,24 @@ module Box250_50() {
     }
 
     // 2xSeilrolle 21x7
-    translate([x2,131-1.5-7.5,1.4]) {
-        compartment(dx2,dy=dy6,d=1,h=12+0.1);
+    translate([x2,y6,1.4]) {
+        compartment(dx2,dy=dy6,d=1,h=12+0.1,open=[1]);
         for (i=[1,3]) {
-            translate([i*dx2/4,dy6/2,0]) rotate([90,0,0]) Seilrolle21x7();
+            translate([i*dx2/4,dy6/2,10.6]) rotate([90,0,0]) Seilrolle21x7();
         };
     };
 
     // Grundplatte
-    // FIXME: Die Koordinaten für oben und für rechts sind gepfuscht.
     translate([x3,y2,1.4]) {
-        translate([15,-0.1,0]) cube([1,7.5+0.1,6+0.1]);
-        translate([189-x3-15,-0.1,0]) cube([1,7.5+0.1,6+0.1]);
-        translate([15,90-2,0]) cube([1,7.5+0.1,6+0.1]);//pfusch
-        translate([189-x3-15,90-2,0]) cube([1,7.5+0.1,6+0.1]);//pfusch
-        translate([1,1,6]) Grundplatte90x90();
+        points=[
+            [15,-0.1,0],
+            [189-2.5-x3-15,-0.1,0],
+            [15,131-2.5-y2-7.5,0],
+            [189-2.5-x3-16,131-2.5-y2-7.5,0]
+        ];
+        for (p=points) translate(p) cube([1,7.5+0.1,6+0.1]);
+
+        translate([2,2,6]) Grundplatte90x90();
     };
 
     // 4xNabe und Rad
@@ -650,68 +698,51 @@ module Box250_50() {
     // 9mm von links. Innenraum 37x4, Höhe 17
     // U-Profil: 7x7x1, aber Innenbreite eher 4.5?
     // FIXME: Abstände eher geschätzt
-    translate([9,0.5,-0.1]) {
-        uprofil(7,7,17.1);
-        translate([7,3+37,0]) rotate([0,0,180]) uprofil(7,7,17.1);
-        translate([3.5,5,0.1]) rotate([90,0,90]) Flachstein30();
+    translate([9,y1,1.4]) {
+        compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
+        translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[0,0,1]);
+        translate([2.5,3.5,0.1])
+            rotate([90,0,90]) Flachstein30();
     };
-    translate([9,131-40.5,-0.1]) {
-        uprofil(7,7,17.1);
-        translate([7,3+37,0]) rotate([0,0,180]) uprofil(7,7,17.1);
-        translate([3.5,5,0.1]) rotate([90,0,90]) Flachstein30();
+    translate([9,y7-37,1.4]) {
+        compartment(5,5,d=1,h=17+0.1,open=[1]);
+        translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
+        translate([2.5,3.5,0.1])
+            rotate([90,0,90]) Flachstein30();
     };
 }
 
-/**
- * U-Profil
- *
- * Parameter:
- * - b: Breite (X-Richtung, Basis des Profils)
- * - h: Höhe (Y-Richtung, die beiden Schenkel)
- * - l: Länge (Z-Richtung)
- */
-module uprofil(b=7,h=7,l=17)
-{
-    cube([1,h,l]);
-    cube([b,1,l]);
-    translate([b-1,0,0]) cube([1,h,l]);
-}
 
 
 
 /*
  * Fachunterteilung
  *
+ * Größe des Innenraums wird angegeben, die Wände stehen
+ * ausserhalb dieses Bereichs.
+ *
  * Referenzpunkt: unten links im Innenraum
- * - h: Höhe
+ *
+ * Parameter:
+ * - dx: Größe des Innenraums in X-Richtung (Breite)
+ * - dy: Größe des Innenraums in Y-Richtung (Tiefe)
  * - d: Wandstärke
- * - dx: Größe in X-Richtung (Breite)
- * - dy: Größe in Y-Richtung (Tiefe)
+ * - h: Höhe
+ * - open: vector[4] mit Flags, welche Seiten offen bleiben sollen. Reihenfolge CW: top,right,bottom,left
  */
-module compartment(dx=10,dy=10,d=1,h=10) {
-    translate([-d,-d,0]) difference() {
-        cube([dx+2*d,dy+2*d,h]);
-        translate([d,d,-0.01]) cube([dx,dy,h+0.02]);
-    }
+
+module compartment(dx=10,dy=10,d=1,h=10,open=[0,0,0,0]) {
+    // top
+    if (!open[0]) translate([-d,dy,0]) cube([dx+2*d,d,h]);
+    // right
+    if (!open[1]) translate([dx,-d,0]) cube([d,dy+2*d,h]);
+    // bottom
+    if (!open[2]) translate([-d,-d,0]) cube([dx+2*d,d,h]);
+    // left
+    if (!open[3]) translate([-d,-d,0]) cube([d,dy+2*d,h]);
 }
 
 
-/**
- * Box 250: außen 189x131x40, innen 186x128x38.5 (nutzbar 33mm)
- *
- * Nutzbare Innenhöhe 33mm, wenn der Deckelbereich freigehalten
- * werden soll.
- *
- * Außenmaß unten 128.5, oben 130.5 => stapelbar
- * Wandstärke 1.5mm
- * Deckelaussparung 5.5mm hoch, Wandstärke hier 1mm
- * Eckenradius außen 2mm
- * Eckverstärkungen (Eckpfosten) 1.5x1.5mm
- * Wandstärke der Fachteiler 1mm
- */
-module Box250() {
-    stapelbox(topx=189,topy=131,h=40);
-}
 
 
 // === interne Designelemente ======================
@@ -1222,3 +1253,5 @@ translate ([20,-440,0]) Seiltrommel15();
 // -------
 translate ([-250,0,0]) Box250();
 translate ([-250,-150,0]) Box250_50();
+
+translate ([-280,-150,0]) rotate([0,0,90]) Box500();
