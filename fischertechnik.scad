@@ -338,6 +338,42 @@ module Klemmkupplung20() {
 
 
 /**
+ * 1970:31081 Achshalter 30x60 (rot)
+ *
+ * Referenzpunkt: mittig in der Fläche, auf der Unterseite.
+ * Größe: 32x60x6.
+ * Ankerpunkte: Mittelpunkte der Achsen bei x=0, y=[-10;-5;0;5;10] und z=3 gegenüber dem Achshalter.
+ * Quality: fair, but not an exact copy.
+ */
+module Achshalter30x60() {
+    color("red") {
+        difference() {
+            // base plate
+            linear_extrude(1)
+                offset(r=1)
+                    square(size=[60-2,32-2],center=true);
+            // big holes in the base plate
+            for (i=[-18.5,0,18.5])
+                translate([i,0,0])
+                    cube([13,24,5],center=true);
+        }
+        // add the axis holders
+        for (x=[-13-5.5,0,13+5.5]) {
+            for (y=[-12.5:5:12.5])
+                translate([x,y,3]) 
+                    cube([13.02,1,6],center=true);
+            for (y=[-10:5:10]) {
+                translate([x,y+2,5]) 
+                    rotate([0,90,0]) cylinder(d=1,h=13.02,center=true);
+                translate([x,y-2,5]) 
+                    rotate([0,90,0]) cylinder(d=1,h=13.02,center=true);
+            };
+        }
+    }
+}
+
+
+/**
  * Metallachsen
  *
 1966:31034 Metallachse30
@@ -710,6 +746,18 @@ module Box250_50() {
         translate([2.5,3.5,0.1])
             rotate([90,0,90]) Flachstein30();
     };
+
+
+    translate([2.7,131/2,1.5+16]) rotate([90,0,90]) {
+        Achshalter30x60();
+        translate([0,10,3]) rotate([0,90,0]) Metallachse110();
+        translate([0, 5,3]) rotate([0,90,0]) Metallachse110();
+        translate([0, 0,3]) rotate([0,90,0]) Metallachse80();
+        translate([0,-5,3]) rotate([0,90,0]) Metallachse60();
+        translate([-26,-10,3]) rotate([0,90,0]) Metallachse50();
+        translate([ 26,-10,3]) rotate([0,90,0]) Metallachse50();
+    }
+
 }
 
 
@@ -996,9 +1044,9 @@ module achse(l=30) {
     // main part
     cylinder(d=4,h=l-1,center=true);
     // top facet
-    translate([0,0,(l-1)/2-0.01]) cylinder(d1=3,d2=4,h=0.5);
+    translate([0,0,(l-1)/2-0.01]) cylinder(d1=4,d2=3,h=0.5);
     // bottom facet
-    translate([0,0,-(l-1)/2+0.01]) cylinder(d1=4,d2=3,h=0.5);
+    translate([0,0,-(l-1)/2-0.5+0.01]) cylinder(d1=3,d2=4,h=0.5);
 }
 
 
@@ -1244,11 +1292,13 @@ translate ([10,-320,0]) Metallachse50();
 translate ([20,-320,0]) Metallachse60();
 translate ([30,-320,0]) Metallachse80();
 translate ([40,-320,0]) Metallachse110();
+translate ([80,-310,0]) Achshalter30x60();
 
 translate ([0,-420,0]) Grundplatte90x90();
 
 translate ([0,-440,0]) KlemmringZ36();
 translate ([20,-440,0]) Seiltrommel15();
+
 
 // -------
 translate ([-250,0,0]) Box250();
