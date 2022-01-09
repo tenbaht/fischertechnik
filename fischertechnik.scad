@@ -1,3 +1,6 @@
+//use <gears/gears.scad>
+use <MCAD/gears.scad>
+
 // === globale Variablen ===========================
 
 no_screwslots = false;  // Schraubenschlitze in den Rastnasen
@@ -349,7 +352,7 @@ module Achshalter30x60() {
     color("red") {
         difference() {
             // base plate
-            linear_extrude(1)
+            linear_extrude(1.8)
                 offset(r=1)
                     square(size=[60-2,32-2],center=true);
             // big holes in the base plate
@@ -363,9 +366,9 @@ module Achshalter30x60() {
                 translate([x,y,3]) 
                     cube([13.02,1,6],center=true);
             for (y=[-10:5:10]) {
-                translate([x,y+2,5]) 
+                translate([x,y+2,5.5]) 
                     rotate([0,90,0]) cylinder(d=1,h=13.02,center=true);
-                translate([x,y-2,5]) 
+                translate([x,y-2,5.5]) 
                     rotate([0,90,0]) cylinder(d=1,h=13.02,center=true);
             };
         }
@@ -430,6 +433,32 @@ module Reifen30() {
     };
 }
 
+/**
+ * 1966:31018 Reifen 45x12 (schwarz)
+ *
+ * Duchmesser aussen 45, innen 26 => D=35.5, r=17.75, d=9.5
+ */
+module Reifen45() {
+    m = 45/2-6; // radius for the circle center
+    color("DimGray") {
+        rotate_extrude()
+            translate([45/2-6,0]) {
+                circle(d=12);
+                translate([4.5,0]) square(3,center=true);
+                translate([5.5,2.5/2]) square(1);
+                translate([5.5,-2.5/2-1]) square(1);
+            }
+        for (a=[0:360/48:359]) {
+            rotate([0,0,a])
+                translate([m,-0.5,-6]) cube([6,1,12]);
+        }
+
+        // add a full ring of inner teeth
+        reifenzaehne(360);
+    }
+}
+
+
 
 /**
  * 1966:31020 Klemmring Z36 m0,5 für Seiltrommel (rot)
@@ -480,9 +509,147 @@ module Seiltrommel15() {
 }
 
 /**
- * Slotlöcher am Anfang und Ende sind weniger tief
- * Vertiefungen rund um die Mittellöcher
- * Logo
+ * 1966:31025 Seilhaken 30 (rot)
+ *
+ * Surprisingly, this might be the most complex part of all.
+ *
+ * Referenzpunkt: Rastnase
+ * Ausrichtung: Liegend in X/Y-Ebene um Z=0, Rastnase bei Y=0, Haken in Y-Richtung, offen nach links
+ * Quality: fair, but not all details are exactly right.
+ *
+ * Geometrie des Hakens:
+ * - am Ende 2x3mm, r=ca. 1 => zwei Hälften in 1mm Abstand vereinigt
+ * - rechte Seite: 4x3mm
+ * - Innenkreis: d=6.5, Mittelpunkt in der Hauptachse
+ * - Aussenkreis: d=12.8mm, Mittelpunkt rechts der Hauptachse.
+ * - rechter Rand: steht ca. 3.5mm über
+ * - linker Rand: steht ca. 2mm über (könnten auch 1.5 sein?)
+ * - Gesamtlänge des Hakens ca. 28.3mm (nur Hakenteil 13.3mm)
+ *
+ * Vermutete Konstruktion:
+ * - Profil d=2mm
+ * - Innenkreis d=7.5, Aussenkreis d=11.5
+ * - Mittelpunkt Aussenkreis 2mm nach rechts verschoben.
+ * - Mittelpunkt Aussenkreis bei Y=28.3-12.5/2= ca. 22mm
+ */
+module Seilhaken30() {
+    color("red") {
+        translate([0,23,0])
+        {
+            hook(start=0,total=240);
+
+            // hook base
+            hull()
+            {
+                // rounded cube for the base part
+                translate([0,-7,0])
+                rotate([0,90,0])
+                linear_extrude(7.5,center=true)
+                    rounded_square([1,1],r=1,center=true);
+
+                // end slice of the hook
+                //FIXME: hier stimmt etwas nicht!
+                hook(start=220,total=40,rounded_tip=false);
+            }
+        };
+
+        // the main body with the bore and the attachment
+        translate([0,7.5,0]) {
+            difference() {
+                cube([7.5,15,7.5],center=true);
+                translate([0,-4,0])
+                    cylinder(d=4,h=16,center=true);
+            }
+            translate([0,-7.5,0])
+                rotate([90,0,0])
+                    rastnase();
+
+            // add the logo, this defines the top side of the hook
+            translate([0,3.5,7.5/2-0.5])
+                rotate([0,0,90])
+                    logo(2);
+
+        }
+    }
+}
+
+
+/**
+ * The hook tip
+ *
+ * This might be the most complex part of all.
+ *
+ * The hook tip results from the combination of two
+ * torus-like structures of different diameters and with
+ * their middle points shifted to each outer.
+ *
+ *
+ * Alternative way to define the profile to be rotated:
+            hull() {
+                translate([10.5/2,-0.5]) circle(d=2);
+                translate([10.5/2,0.5]) circle(d=2);
+                translate([10.5/2-3,-1.5]) square(3);
+            };
+ * or as an explecit intersection:
+        intersection() {
+            rotate([0,0,start])
+            rotate_extrude(angle=total)
+                translate([8.5/2,-0.5])
+                    offset(r=1)
+                        square([3,1]);
+            // outer ring
+            translate([-1,0,0])
+            rotate([0,0,start])
+            rotate_extrude(angle=total)
+                translate([10.5/2-3,-0.5])
+                    offset(r=1)
+                        square([3,1]);
+        };
+ */
+module hook(start=-15, total=270, rounded_tip=true) {
+    // We want the hook to be open to the left side, but
+    // rotate_extrude always starts on the right side
+    rotate([0,180,0]) {
+
+        // Intersecting the inner and outer ring
+        intersection_for(i=[-1,0]) {
+            // inner (i=0) and outer (i=-1) ring
+            translate([i,0,0])
+            rotate([0,0,start])
+            rotate_extrude(angle=total)
+                translate([8.5/2+2*i,-0.5])
+                    rounded_square([3,1],r=1);
+        };
+
+        // add the rounded tip is needed
+        if (rounded_tip) {
+            rotate([0,0,start])
+                hull() {
+                    translate([8.5/2,0,-0.5]) sphere(1);
+                    translate([8.5/2,0,0.5]) sphere(1);
+                };
+        };
+    };
+}
+
+module rounded_square(size=[1,3], r=1, center=false) {
+    offset(r=r) square(size,center=center);
+}
+
+module rounded_cube(size=[1,1,1], r=1, center=false) {
+    linear_extrude(size[3],center=center)
+        rounded_square(size, r, center);
+}
+
+
+/**
+ * Grundplatte, noch nicht so ganz universell
+ *
+ * Quality: Fair, but not all details absolutely correct.
+ *
+ * bekannte Fehler/Schwächen:
+ * - Slotlöcher am Anfang und Ende sind weniger tief
+ * - Vertiefungen rund um die Mittellöcher fehlen
  */
 module Grundplatte90x90(l=90,b=90) {
     color("Red")
@@ -704,7 +871,7 @@ module Box250_50() {
         };
     };
 
-    // Grundplatte
+    // Grundplatte + Reifen45
     translate([x3,y2,1.4]) {
         points=[
             [15,-0.1,0],
@@ -714,7 +881,11 @@ module Box250_50() {
         ];
         for (p=points) translate(p) cube([1,7.5+0.1,6+0.1]);
 
-        translate([2,2,6]) Grundplatte90x90();
+        translate([2,2,6]) {
+            Grundplatte90x90();
+            for (p=[[22.5,22.5],[22.5,67.5],[67.5,22.5],[67.5,67.5]])
+                translate([p[0],p[1],12]) Reifen45();
+        }
     };
 
     // 4xNabe und Rad
@@ -734,28 +905,28 @@ module Box250_50() {
     // 9mm von links. Innenraum 37x4, Höhe 17
     // U-Profil: 7x7x1, aber Innenbreite eher 4.5?
     // FIXME: Abstände eher geschätzt
-    translate([9,y1,1.4]) {
+    translate([9.5,y1,1.4]) {
         compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
         translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[0,0,1]);
         translate([2.5,3.5,0.1])
             rotate([90,0,90]) Flachstein30();
     };
-    translate([9,y7-37,1.4]) {
+    translate([9.5,y7-37,1.4]) {
         compartment(5,5,d=1,h=17+0.1,open=[1]);
         translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
         translate([2.5,3.5,0.1])
             rotate([90,0,90]) Flachstein30();
     };
 
-
+    // Achshalter mit den langen Metallachsen
     translate([2.7,131/2,1.5+16]) rotate([90,0,90]) {
         Achshalter30x60();
-        translate([0,10,3]) rotate([0,90,0]) Metallachse110();
-        translate([0, 5,3]) rotate([0,90,0]) Metallachse110();
-        translate([0, 0,3]) rotate([0,90,0]) Metallachse80();
-        translate([0,-5,3]) rotate([0,90,0]) Metallachse60();
-        translate([-26,-10,3]) rotate([0,90,0]) Metallachse50();
-        translate([ 26,-10,3]) rotate([0,90,0]) Metallachse50();
+        translate([0,10,3.8]) rotate([0,90,0]) Metallachse110();
+        translate([0, 5,3.8]) rotate([0,90,0]) Metallachse110();
+        translate([0, 0,3.8]) rotate([0,90,0]) Metallachse80();
+        translate([0,-5,3.8]) rotate([0,90,0]) Metallachse60();
+        translate([-26,-10,3.8]) rotate([0,90,0]) Metallachse50();
+        translate([ 26,-10,3.8]) rotate([0,90,0]) Metallachse50();
     }
 
 }
@@ -1053,18 +1224,24 @@ module achse(l=30) {
 /**
  * inner teeth used to hold the tires or gears on the hub part
  *
- * Eine Gruppe von 6 Zähnen über 90°. Für einen vollständigen
- * Reifen werden drei Gruppen mit je 120° Versatz gebraucht:
+ * Default ist eine Gruppe von 6 Zähnen über 90°.
+ * Für einen vollständigen Reifen 30 werden drei Gruppen mit
+ * je 120° Versatz gebraucht:
  *
         // add the inner teeth
         reifenzaehne();
         rotate([0,0,120]) reifenzaehne();
         rotate([0,0,240]) reifenzaehne();
+ *
+ * Ein voller Zahnkreis: reifenzaehne(360);
+ *
+ * Parameter:
+ * - angle: Winkel, der mit Zähnen gefüllt werden soll. Default 90. Sollte immer ein vielfaches von 15° sein.
  */
-module reifenzaehne() {
+module reifenzaehne(angle=90) {
     difference() {
-        rotate_extrude(angle=90) polygon(points=[[10,0.75],[11.5,0.75],[11.5,-0.75],[10,-0.75],[10,0.75]]);
-        for (a=[0:15:90]) {
+        rotate_extrude(angle=angle) polygon(points=[[10,0.75],[11.5,0.75],[11.5,-0.75],[10,-0.75],[10,0.75]]);
+        for (a=[0:15:angle]) {
             rotate([0,0,a]) translate([10,0,0]) cylinder(d=2,h=1.6,center=true);
         }
     };
@@ -1117,9 +1294,18 @@ module slot() {
 }
 
 
-module logo() {
+/**
+ * The embossed company logo (for eye candy)
+ *
+ * The logo raises 1mm above the reference plane.
+ *
+ * Reference point: X/Y center of the logo, on the back side.
+ * Parameters:
+ * h: logo height (default: 3mm)
+ */
+module logo(h=3) {
     linear_extrude(1)
-        text("MM",size=3,halign="center",valign="center");
+        text("MM",size=h,halign="center",valign="center");
 }
 
 
@@ -1266,6 +1452,7 @@ translate ([100,-160,0]) Winkelstein15();
 translate ([120,-160,0]) Winkelstein7();
 
 translate ([0,-200,0]) Flachstein30();
+translate ([40,-200,0]) Seilhaken30();
 
 translate ([0,-220,0]) Seilrolle21x7();
 translate ([30,-220,0]) Nabenoberteil();
@@ -1276,6 +1463,7 @@ translate ([0,-250,0]) Nabe();
 translate ([30,-250,0]) Flachnabe();
 translate ([60,-250,0]) Reifen30();
 translate ([90,-250,0]) {Nabe(); Reifen30();}
+translate ([130,-250,0]) Reifen45();
 
 translate ([0,-280,0]) Handkurbel();
 translate ([40,-280,0]) {
@@ -1299,6 +1487,11 @@ translate ([0,-420,0]) Grundplatte90x90();
 translate ([0,-440,0]) KlemmringZ36();
 translate ([20,-440,0]) Seiltrommel15();
 
+*translate ([0,20,0]) {
+//    spur_gear(modul=1.5,tooth_number=20, width=6, bore=20);
+//    spur_gear(modul=0.5,tooth_number=20, width=2, bore=4);
+    linear_extrude(6) gear(number_of_teeth=20,diametral_pitch=1/1.5,verbose=true);
+}
 
 // -------
 translate ([-250,0,0]) Box250();
