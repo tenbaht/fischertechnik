@@ -1,5 +1,26 @@
-//use <gears/gears.scad>
-use <MCAD/gears.scad>
+use <MCAD/involute_gears.scad>
+/*
+// placeholder, if no gear library is used
+module spur_gear(mod,teeth,thickness) {
+        cylinder(d=mod*teeth, h=thickness, center=true);
+}
+
+// BOSL2 function API for the BOSL v1 involute_gears library
+module spur_gear(mod,teeth,thickness,shaft_diam=0) {
+        gear(mm_per_tooth=mod*PI, number_of_teeth=teeth, thickness=thickness,hole_diameter=shaft_diam);
+}
+*/
+// BOSL2 function API for the MCAD involute_gears library
+module spur_gear(mod,teeth,thickness,shaft_diam=0) {
+        gear(circular_pitch=mod*180, number_of_teeth=teeth, gear_thickness=thickness,bore_diameter=shaft_diam,
+    hub_diameter=0, rim_thickness=thickness, rim_width=0);
+}
+
+/*
+include <BOSL/constants.scad>
+use <BOSL/involute_gears.scad>
+*/
+
 
 // === globale Variablen ===========================
 
@@ -471,7 +492,8 @@ module KlemmringZ36()
 {
     color("red")
     difference() {
-        cylinder(d=19,h=6.3,center=true);
+//        cylinder(d=19,h=6.3,center=true);
+        spur_gear(mod=0.5, teeth=36, thickness=6.3);
         // almost rectangular holes
         for (i=[0,180])
             rotate([0,0,i]) translate([0,5,0]) cube([4.5,4.5,10],center=true);
@@ -639,6 +661,120 @@ module rounded_square(size=[1,3], r=1, center=false) {
 module rounded_cube(size=[1,1,1], r=1, center=false) {
     linear_extrude(size[3],center=center)
         rounded_square(size, r, center);
+}
+
+
+/**
+ * 1970:36334 S-Riegelscheibe Z20 m0,5 (rot)
+ *
+ * Referenzpunkt: Mittig in der Scheibe auf der Achse
+ */
+module Riegelscheibe() {
+    color("red") difference() {
+        // using BOSL2:
+        spur_gear(mod=0.5, teeth=20, thickness=2);
+        // BOSLv1:
+        //gear(mm_per_tooth=0.5*PI, number_of_teeth=20, thickness=2);
+        statikloch();
+    }
+}
+
+/**
+ * 1975: 31060 Verbinder 15 (1975) (rot)
+ *
+ * flattend on one side
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round side on the negative x-side (left)
+ * - the flattend side on the positive x-side (right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+module Verbinder15() {
+    color("red") verbinder(15,1);
+}
+
+
+/**
+ * 1969: 31061 Verbinder 30 (1969) (rot)
+ *
+ * fully rounded on both sides
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round sides on the negative and positive x-side (left and right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+module Verbinder30round() {
+    color("red") verbinder(30,0);
+}
+
+/**
+ * 1979: 31061 Verbinder 30 (1979) (rot)
+ *
+ * flattend on one side
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round side on the negative x-side (left)
+ * - the flattend side on the positive x-side (right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+module Verbinder30() {
+    color("red") verbinder(30,1);
+}
+
+/**
+ * 1968: 31330 Verbinder 45 (1968) (rot)
+ *
+ * fully rounded on both sides
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round sides on the negative and positive x-side (left and right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+module Verbinder45round() {
+    color("red") verbinder(45,0);
+}
+
+/**
+ * 1979: 31330 Verbinder 45 (1979) (rot)
+ *
+ * flattend on one side
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round side on the negative x-side (left)
+ * - the flattend side on the positive x-side (right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+module Verbinder45() {
+    color("red") verbinder(45,1);
+}
+
+/**
+ * 1978: 35262 V-Stein-Verbinder 15 30 (gelb)
+ *
+ */
+module Verbinder1530() {
+    color("yellow") {
+    }
 }
 
 
@@ -990,6 +1126,26 @@ module flachnut(l=30.1,d=4) {
     }
 }
 
+/**
+ * Subtraktionskörper für ein Statik-Loch
+ *
+ * Der Körper ist parallel zur Z-Achse, symmetrisch um den
+ * Ursprung.
+ *
+ * Parameter:
+ * - h: Gesamthöhe des Subtraktionskörpers (von Z=-h/2 bis Z=h/2), Default: 10
+ * - b: Breite des Schlitzes. Default 6mm.
+ */
+module statikloch (h=10, b=6) {
+    intersection(){
+        cylinder(h=h,d=b,center=true);
+        union() {
+            cube([b,2.5,h+0.01],center=true);
+            cylinder(h=h+0.01,d=4,center=true);
+        }
+    }
+}
+
 // Additionselemente
 /**
  * triagular post for use as a corner post in the boxes
@@ -1277,6 +1433,48 @@ module winkelstein(r,a) {
 
 
 /**
+ * universal building block for Verbinder parts
+ *
+ * The part can be fully round on both sides or flattend on the right side
+ *
+ * @parameters:
+ * - len: length in mm, default 15
+ * - cut: 0=fully round on both sides (total width=7.8mm)
+ *        1=cut on the right side to 2.6mm (total width 6.5mm)
+ *
+ * orientation:
+ * - length along the z-axis
+ * - the round side on the negative x-side (left)
+ * - the flattend side on the positive x-side (right)
+ *
+ * reference point: the part stands upright along the z-axis on the
+ * reference point, centered on the middle of the central core part.
+ *
+ */
+
+module verbinder(len=15,cut=1) {
+    linear_extrude(len){
+        difference(){
+            // the main body: Two circles d=4, distance 4mm
+            // plus the center piece, 3mm wide
+            union(){
+                translate([-2,0]) circle(r=2);
+                translate([ 2,0]) circle(r=2);
+                square(3,center=true);
+            }
+            // the two small slots
+            translate([-3,0]) square([4,1],center=true);
+            translate([ 3,0]) square([4,1],center=true);
+            // shorten one side
+            if (cut) translate([ 2.6,-2]) square(4);
+        }
+    }
+}
+
+
+
+
+/**
  * seitlicher Profilschlitz für die Grundplatte
  * Schlitz entland der Z-Achse
  * Referenzpunkt: mittig an der Aussenseite des Schlitzes
@@ -1419,6 +1617,7 @@ module stapelbox(topx=189,topy=131,h=40) {
 // Subtraktionskörper für Nuten
 nut();
 translate ([6,0,0]) flachnut();
+translate ([12,0,0]) statikloch();
 
 // Rast- und Rundnase
 translate ([0,-6,0]) rastnase();
@@ -1486,6 +1685,14 @@ translate ([0,-420,0]) Grundplatte90x90();
 
 translate ([0,-440,0]) KlemmringZ36();
 translate ([20,-440,0]) Seiltrommel15();
+translate ([40,-440,0]) Riegelscheibe();
+
+translate ([0,-460,0]) Verbinder15();
+translate ([10,-460,0]) Verbinder30();
+translate ([20,-460,0]) Verbinder30round();
+translate ([30,-460,0]) Verbinder45();
+translate ([40,-460,0]) Verbinder45round();
+translate ([50,-460,0]) Verbinder1530();
 
 *translate ([0,20,0]) {
 //    spur_gear(modul=1.5,tooth_number=20, width=6, bore=20);

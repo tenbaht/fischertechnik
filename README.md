@@ -30,16 +30,31 @@ Sondertyp 74L
 
 ## andere Libraries und Teile
 
+Schöne Zusammenfassung:
+https://stackoverflow.com/questions/60562858/best-libraries-for-openscad
+
+MCAD
+Ist immer mit enthalten, am ehesten eine Art von Standard-Lib.
+
+https://github.com/revarbat/BOSL
+Das Original. Seit 2019 kaum noch weiterentwickelt, sie konzentrieren sich
+auf BOLT2. Rendert aber sehr viel schneller als die v2.
+
 https://github.com/revarbat/BOSL2/wiki/Topics
 Große Library mit Zusatzfunktionen z.B. für Assemblies. Teile können als
 Attachments aneinander montiert und gemeinsam bewegt werden, bleiben aber
 trotzdem unabhängig.
+Noch Beta-Status. Funktioniert nur beinahe mit openscad 2019.05, da
+teilweise die neue "^" Syntax anstelle der alten pow() Funktion verwendet
+wird. Ist aber leicht anzupassen.
+
 
 
 https://github.com/Karijn/FisherParts
 Sehr flexible Definition von eigenen Teilen. Die Standard-Blöcke sind dann
 nur vordefinierte Spezialfälle. Die Statikstreben scheinen auch enthalten zu
 sein. Wird hier verwendet: https://www.youmagine.com/designs/fischertechnik-glider
+Hat mich mal über Hackaday angeschrieben.
 
 https://www.thingiverse.com/thing:4368642/files
 Beeb-Bot: Ein Roboter. Hier werden alle enthaltenen Teile definiert, incl.
