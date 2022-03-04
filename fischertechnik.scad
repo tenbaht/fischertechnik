@@ -821,6 +821,103 @@ module Grundplatte90x90(l=90,b=90) {
     translate([13,b-32,5.5]) logo();
 }
 
+
+/**
+ * 1966: 31019 Drehscheibe 60x5,5 (rot)
+ *
+ * Durchmesser
+ * - inner: 25.8mm
+ * - slot: 38.8
+ * - round slot: width ~4.2mm, diameter 45mm
+        (measured: inner diameter 41mm. outer diameter ~49.5)
+ * - outer: 61.8mm
+ * - Vertiefung im Rand: 2.5mm tief
+ * Dicke: 5.5mm, je 2mm Aussenränder, 1.5mm innenfläche
+ * Sechskantlöcher/hexagonal holes:
+ * - Schlüsselweite/width across flats 4mm (fits M2 nuts)
+ * - Abstand 17mm, Lochkreisdurchmesser 34mm
+ * - distance 17mm, bolt cycle diameter 34mm
+ *   (measured: Diameter outside 37.5mm, inside 29.5mm)
+ *   (=> Lochkreisdurchmesser ca. 33.5mm)
+ *
+ * Innerer Ring an den Zähnen:
+ * - trapezförmiger Querschnitt
+ * - aussen d=26mm, innen d=22mm => Höhe 2mm
+ * - Breite aussen: 1.25mm von der Außenseite => 3mm breit
+ * - Breite innen: geschätzt 2mm
+ * Referenzpunkt: mittig in der Scheibe
+ */
+module Drehscheibe60() {
+    t2 = 5.5/2;	// (half) thickness
+    color("red") {
+        difference(){
+            rotate_extrude()
+                polygon(points=[
+//                    [11.4,1],
+                    [13,t2],[31,t2],	// upper side
+    	            [31,t2-1.5],[28.5,0.75],	// outside of the wheel
+                    [28.5,-0.75],[31,-t2+1.5],
+                    [31,-t2],[13,-t2],
+//                    [11.4,-1],
+//                    [11.4,1],
+                    [13,t2]
+                ]);
+            
+            for (a=[0:60:300]) rotate([0,0,a]) {
+                // cut the slots perpendicular to the z axis
+                translate([0,31,0])
+                    rotate([90,0,0])
+                        slot2(h3=15,h2=11.5,h1=1);
+
+                // cut the round slots perpendicular to the disc surface
+                linear_extrude(6,center=true) {
+                    polygon(arc(22.5-4.5/2,22.5+4.5/2,-15,15,$fn=72));
+                    for (a=[-15,15])
+                        rotate([0,0,a])
+                            translate([45/2,0,0])
+                                circle(d=4.5);
+                };
+                // calculation of the radius for constructing a hexagon
+                // with a given width across flats (Schlüsselweite SW):
+                // r = SW / sqrt(3)
+                rotate([0,0,a+30])
+                    translate([0,33.5/2,0])
+                        cylinder(6,r=4/sqrt(3),center=true,$fn=6);
+            }; // for a
+	    }; // difference
+
+        // add the inner ring to connect the disc with the inner teeth
+/*
+ * Innerer Ring an den Zähnen:
+ * - trapezförmiger Querschnitt
+ * - aussen d=26mm, innen d=22mm => Höhe 2mm
+ * - Breite aussen: 1.25mm von der Außenseite => 3mm breit
+ * - Breite innen: geschätzt 2mm
+*/
+        difference(){
+            rotate_extrude()
+                polygon(points=[
+                    [11,1],[13.01,1.5], // tiny overlap
+                    [13.01,-1.5],[11,-1],
+                    [11,1]
+                ]);
+            // cut the four slots/gaps in the inner ring
+            for (a=[0,90]) rotate([0,0,a])
+                cube([3,30,6],center=true);
+        };
+
+        // add the inner teeth
+        for (a=[15:90:285])
+            rotate([0,0,a])
+                reifenzaehne(60);
+
+    }; // color
+}
+
+
+
+
+
 /* === leere Kästen ======================================= */
 
 /**
@@ -832,7 +929,13 @@ Box 189x131x40 u-tS neutral (grau)
  */
 
 /**
- * Box 250: außen 189x131x40, innen 186x128x38.5 (nutzbar 33mm)
+ * Box 250
+ *
+ * size outside: 189x131x40
+ * size inside:  183.5x125.5x38.5
+ * useable inside height 33mm, otherwise it won't stack anymore.
+ * coordinate of the lower left inside corner: [2.75,2.75,1.5]
+ * internal divider walls should stick out for 1.25mm (up to 1.4mm) to safely connect into the box walls
  *
  * Nutzbare Innenhöhe 33mm, wenn der Deckelbereich freigehalten
  * werden soll.
@@ -848,6 +951,15 @@ module Box250() {
     stapelbox(topx=189,topy=131,h=40);
 }
 
+/**
+ * Box 500
+ *
+ * size outside: 262x189x40
+ * size inside:  256.5x183.5x38.5
+ * useable inside height 33mm, otherwise it won't stack anymore.
+ * coordinate of the lower left inside corner: [2.75,2.75,1.5]
+ * internal divider walls should stick out for 1.25mm (up to 1.4mm) to safely connect into the box walls
+ */
 module Box500() {
     stapelbox(topx=262,topy=189,h=40);
 }
@@ -1145,6 +1257,82 @@ module statikloch (h=10, b=6) {
         }
     }
 }
+
+
+/**
+ * Subtraktionskörper für den seitlichen Profilschlitz der Grundplatte
+ *
+ * Bemaßung:
+ * - Aufweitung auf volle 4mm: die ersten 5mm (z=0..5)
+ * - Innenbohrung d=4mm, l=33mm (z=5..33)
+ * - Aufweitung auf volle 3mm: z=5..24.5
+ * - Aufweitung des Innenprofils auf 4x5mm: z=24.5..25
+ *
+ * Ausrichtung: Schlitz entland der Z-Achse
+ * Referenzpunkt: mittig an der Aussenseite des Schlitzes
+ */
+module slot() {
+    translate([0,0,-0.1]) { // ensure an overlap of 0.1mm
+        cylinder(d=4,h=33.1);
+        translate([-2,-3.05,0]) cube([4,6.1,5.1]);
+        translate([-1.5,-3.05,0]) cube([3,6.1,25.1-0.5]);
+        translate([-2,-2.5,0]) cube([4,5,25.1]);
+        // eye candy: tiny depressions along the slot
+        translate([-3,-3.05,0]) cube([6,0.1,26.1]);
+        translate([-3,2.95,0]) cube([6,0.1,26.1]);
+    }
+}
+
+/*
+ * - h3: Tiefe Innenbohrung 4mm
+ * - h2: Tiefe Aufweitung auf 3mm
+ * - h1: Tiefe Aufweitung auf 4mm
+ */
+module slot2(h3=33,h2=24.5,h1=5) {
+    translate([0,0,-0.1]) { // ensure an overlap of 0.1mm
+        cylinder(d=4,h=h3+0.1);
+        translate([-2,-3.05,0]) cube([4,6.1,h1+0.1]);
+        translate([-1.5,-3.05,0]) cube([3,6.1,h2+0.1]);
+//        translate([-2,-2.5,0]) cube([4,5,h2+0.5+0.1]);
+        // eye candy: tiny depressions along the slot
+        translate([-3,-3.05,0]) cube([6,0.1,h2+1.6]);
+        translate([-3,2.95,0]) cube([6,0.1,h2+1.6]);
+    }
+}
+
+
+/**
+ * Return a closed path of an arc
+ *
+ * A list of coordinates is returned that can be used with polygon
+ * and linear_extrude:
+ *
+ * linear_extrude() polygon(points=arc(r1=10,r2=15,start=90,end=270))
+ *
+ * This is used to cut the curved slot for Drehscheibe60.
+ *
+ * @parameters:
+ * - r1: inner radius of the arc
+ * - r2: outer radius of the arc
+ * - start: start angle, 0=right (default: 0)
+ * - end: end angle (default 360)
+ * - $fn: is used to define the number of segments. This is slightly
+ *        different from the usual definition of $fn, where it defines
+ *        the number of segments for a full circle. For an arc of
+ *        less than 360 degrees this results in a higher segment
+ *        density.
+ *
+ * FIXME: problems ahead if start>end
+ */
+function arc(r1, r2, start=0, end=360) =
+    concat(
+        [for(a = [start:360/$fn:end]) [r1 * cos(a), r1 * sin(a)]],
+        [for(a = [end:-360/$fn:start]) [r2 * cos(a), r2 * sin(a)]],
+        [[r1 * cos(start), r1 * sin(start)]]
+    );
+
+
+
 
 // Additionselemente
 /**
@@ -1475,24 +1663,6 @@ module verbinder(len=15,cut=1) {
 
 
 /**
- * seitlicher Profilschlitz für die Grundplatte
- * Schlitz entland der Z-Achse
- * Referenzpunkt: mittig an der Aussenseite des Schlitzes
- */
-module slot() {
-    translate([0,0,-0.1]) { // ensure an overlap of 0.1mm
-        cylinder(d=4,h=33.1);
-        translate([-2,-3.05,0]) cube([4,6.1,5.1]);
-        translate([-1.5,-3.05,0]) cube([3,6.1,25.1-0.5]);
-        translate([-2,-2.5,0]) cube([4,5,25.1]);
-        // eye candy: tiny depressions along the slot
-        translate([-3,-3.05,0]) cube([6,0.1,26.1]);
-        translate([-3,2.95,0]) cube([6,0.1,26.1]);
-    }
-}
-
-
-/**
  * The embossed company logo (for eye candy)
  *
  * The logo raises 1mm above the reference plane.
@@ -1694,14 +1864,32 @@ translate ([30,-460,0]) Verbinder45();
 translate ([40,-460,0]) Verbinder45round();
 translate ([50,-460,0]) Verbinder1530();
 
-*translate ([0,20,0]) {
+translate ([0,20,0]) {
 //    spur_gear(modul=1.5,tooth_number=20, width=6, bore=20);
 //    spur_gear(modul=0.5,tooth_number=20, width=2, bore=4);
     linear_extrude(6) gear(number_of_teeth=20,diametral_pitch=1/1.5,verbose=true);
 }
 
+translate ([0,-500,0]) Drehscheibe60();
+*union(){   // activate this with '!' for plotting a dxf file
+    projection(cut=true) Drehscheibe60();
+    translate([70, 0]) projection(cut=false) Drehscheibe60();
+    translate([ 0,40]) projection(cut=true) rotate([90,0,0]) Drehscheibe60();
+}
+
 // -------
 translate ([-250,0,0]) Box250();
+*union(){   // activate this with '!' for plotting a dxf file
+    // bottom of the inside space of the box
+    projection(cut=true) translate([0,0,-1.5]) Box250();
+    // y-z plane: cut across the short side of the box
+    projection(cut=true)
+        translate([200,0,50]) rotate([0,90,0]) Box250();
+    // cut across the long side of the box
+    projection(cut=true)
+        translate([0,150,50]) rotate([-90,0,0]) Box250();
+}
+
 translate ([-250,-150,0]) Box250_50();
 
 translate ([-280,-150,0]) rotate([0,0,90]) Box500();
