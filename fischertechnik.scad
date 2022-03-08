@@ -427,6 +427,7 @@ module Metallachse60() {color("Silver") achse(60);}
 module Metallachse80() {color("Silver") achse(80);}
 module Metallachse110() {color("Silver") achse(110);}
 module Metallachse150() {color("Silver") achse(150);}
+module Metallachse170() {color("Silver") achse(170);}
 
 
 /**
@@ -457,7 +458,7 @@ module Reifen30() {
 /**
  * 1966:31018 Reifen 45x12 (schwarz)
  *
- * Duchmesser aussen 45, innen 26 => D=35.5, r=17.75, d=9.5
+ * Durchmesser aussen 45, innen 26 => D=35.5, r=17.75, d=9.5
  */
 module Reifen45() {
     m = 45/2-6; // radius for the circle center
@@ -472,6 +473,44 @@ module Reifen45() {
         for (a=[0:360/48:359]) {
             rotate([0,0,a])
                 translate([m,-0.5,-6]) cube([6,1,12]);
+        }
+
+        // add a full ring of inner teeth
+        reifenzaehne(360);
+    }
+}
+
+
+
+/**
+ * 1974: 37236 Reifen 60 (schwarz)
+ *
+ * Durchmesser aussen 45, innen 26 => D=35.5, r=17.75, d=9.5
+ * Durchmesser aussen 60, innen 26 => D=43, r=21.5, d=
+ * Dicke 21mm
+ *
+ * 62 "teeth". 62? Really? Not 60 or 64?
+ *
+ * reference point: central in the middle
+ * size: diameter 60mm, thickness 21mm, reference point 10.5mm above the
+ side
+ * Quality: rough estimate
+ */
+module Reifen60() {
+    m = 60/2-21/2; // radius for the circle center
+    color("DimGray") {
+        rotate_extrude() {
+	    //FIXME: Der Kreis ist zu fett in der Mitte. Besser ein Oval
+            translate([(60-21)/2,0]) circle(d=21);
+	    // Vertiefte Lauffläche
+            translate([30-6/2, 0])   square(6,center=true);
+	    // Rille oben und unten
+            translate([30, 3.5]) square(1,center=true);
+            translate([30,-3.5]) square(1,center=true);
+        }
+        for (a=[0:360/62:359]) {
+            rotate([0,0,a])
+                translate([21,-0.5,-21/2]) cube([8,1,21]);
         }
 
         // add a full ring of inner teeth
@@ -823,6 +862,19 @@ module Grundplatte90x90(l=90,b=90) {
 
 
 /**
+ * V-Grundplatte 180x90x5,5 (1966) (rot)	1966: 31001
+ *
+ * FIXME: thickness is 6mm now instead of 5.5
+ */
+module Grundplatte90x180()
+{
+    Grundplatte90x90(l=180,b=90);
+}
+
+
+
+
+/**
  * 1966: 31019 Drehscheibe 60x5,5 (rot)
  *
  * Durchmesser
@@ -962,251 +1014,6 @@ module Box250() {
  */
 module Box500() {
     stapelbox(topx=262,topy=189,h=40);
-}
-
-
-/* === gefüllte Kästen ==================================== */
-
-/*
- * Berechnung der Positionen:
- * Außenmaß 189x131, 1.5mm Wandstärke => Innenmaß 186x128
- * Es gibt aber noch die Stapelschräge von 1.25mm pro Seite,
- * deshalb ist der Innenraum am Boden nur 183.5x125.5.
- *
- * Die Fachteiler müssen entlang der Außenseiten offen bleiben
- * um nicht mit ihren senkrechten Außenwänden durch die
- * Grundschale durchzustechen.
- * Trotzdem bleibt noch das Problem mit den senkrecht
- * auftreffenden Wänden.
- *
- * Damit sie nicht in Bodennähe durchstechen wird an den
- * Außenwänden noch ein Rand von jeweils 1mm vorgesehen,
- * es ergibt sich das kalkulatorische Innenmaß von 184x126 bei
- * einer kalkulatorischen Wandstärke von 2.5mm.
- *
- */
-module Box250_50() {
-    // Koordinaten der einzelnen Teilfächer.
-    // Orientierung des Kastens: Räder links
-
-    // Horizontal:
-    dx1=43;//189-2*1.5-dx3-dx4-2*1;  // Breite linker Rand
-    dx2=46;         // Breite mittlere Fachreihe
-    dx3=76;         // Breite Fach Baustein30
-    dx4=63;         // Breite Kleinkramfach
-
-    x1=1.5+1;       // linker Rand Innenraum oben, 1mm padding für Schräge
-    x2=x1+dx1+1;    // Beginn mittlere Fachreihe
-    x3=x2+dx2+1;    // Beginn Grundplatte
-    x4=x2+dx3+1;    // Beginn Kleinkramfach
-    x5=x4+dx4;      // kalk. rechter Rand Innenraum
-
-    // Vertikal:
-    dy1=31.5;       // Innenmaß Kleinkramfach/Baustein30
-    dy2=31.5;       // Innenmaß Baustein15
-    dy3=16;         // Innenmaß Winkelstein30
-    dy4=16;         // Innenmaß Winkelstein60
-    dy5=18.5;       // Innenmaß Seiltrommel
-    dy6=7.5;        // Innenmaß Seilrolle
-
-    y1=1.5+1;       // unterer Rand Innenraum, 1mm padding für Schräge
-    y2=y1+dy1+1;    // Beginn Baustein15/Grundplatte
-    y3=y2+dy2+1;    // Beginn Winkelstein30
-    y4=y3+dy3+1;    // Beginn Winkelstein60
-    y5=y4+dy4+1;    // Beginn Seiltrommel
-    y6=y5+dy5+1;    // Beginn Seilrolle
-    y7=y6+dy6;      // kalk. oberer Rand Innenraum
-
-    Box250();
-    // Kleinkramfach
-    translate([x4,y1,1.4])
-        compartment(dx=dx4,dy=dy1,d=1,h=33+0.1,open=[0,1,1,0]);
-
-    // Grundbausteine 30
-    translate([x2,y1,1.4]) {
-        compartment(dx=dx3,dy=dy1,d=1,h=10+0.1);
-        translate([7.5,   8,30])
-            rotate([180,0,0]) Baustein30viereckloch();
-        translate([7.5,23.5,30])
-            rotate([180,0,0])Baustein30viereckloch();
-        for (i=[1:4]) {
-            translate([7.5+15.1*i,   8,30])
-                rotate([180,0,0]) Baustein30();
-            translate([7.5+15.1*i,23.5,30])
-                rotate([180,0,0]) Baustein30();
-        };
-    };
-
-    // Grundbausteine 15
-    translate([x2,y2,1.4]) {
-        compartment(dx2,dy=dy2,d=1,h=10+0.1);
-        translate([7.5, 8,15+2.8])
-            rotate([180,0,0])
-                Baustein15_2rz();
-        translate([7.5,23.5,15+2.8])
-            rotate([180,0,0])
-                Baustein15_2z();
-        for (i=[1:2]) {
-            translate([7.5+15.1*i, 8,15])
-                rotate([180,0,0])
-                    Baustein15();
-            translate([7.5+15.1*i,23.5,15])
-                rotate([180,0,0])
-                    Baustein15();
-        };
-    };
-
-    // Winkelstein 30
-    translate([x2,y3,1.4]) {
-        compartment(dx2,dy=dy3,d=1,h=8+0.1);
-        for (i=[0:3]) {
-            translate([11.2*i,dy3/2,0])
-                // rotate the angular block upright
-                rotate([0,105,0]) translate([-7.5,0])
-                Winkelstein30();
-        };
-    };
-
-    // Winkelstein 60, Rollenlager
-    translate([x2,y4,1.4]) {
-        compartment(31.5,dy=dy4,d=1,h=8+0.1);
-        for (i=[0:1]) {
-            translate([8+15.5*i,dy4/2,0]) Winkelstein60();
-        };
-
-        // Rollenlager
-        // Die Stützen sind 3mm hoch, 1mm breit 
-        // und 3 bzw. 5mm lang.
-        // Abstand vom Rand auch genau 3mm.
-        translate([31.5+1+3,0,0])        cube([1,3,3]);
-        translate([31.5+1+3,dy4-3,0])    cube([1,3,3]);
-        translate([dx2+1-5,dy4/2-0.5,0]) cube([5,1,3]);
-        translate([dx2-6,dy4/2,3]) rotate([0,0,90])
-            Rollenlager15();
-    };
-
-    // Klemmringe und Seiltrommel
-    translate([x2,y5,1.4]) {
-        // overall box
-        compartment(dx2,dy=dy5,d=1,h=8+0.1);
-
-        // two rolls on left and right:
-        for (i=[0,dx2-7])
-            translate([i,0,0]) {
-                compartment(7,dy=dy5,d=1,h=12+0.1);
-                translate ([3.5,9.25,9.5])
-                    rotate([0,90,0]) KlemmringZ36();
-            };
-                
-        // Seiltrommel 15
-        // Halterungen 11b/10h, Freiraum 5mm oben/unten, Abstand ca. 9mm
-        translate([dx2/2, dy5/2, 1.4]) {
-            for (i=[-4.5,4.5])
-                translate([0,i,5])
-                    cube([11,1,10],center=true);
-
-            translate([7.5,0,7.5])
-                rotate([0,-90,0])
-                    Seiltrommel15();
-        }
-    }
-
-    // 2xSeilrolle 21x7
-    translate([x2,y6,1.4]) {
-        compartment(dx2,dy=dy6,d=1,h=12+0.1,open=[1]);
-        for (i=[1,3]) {
-            translate([i*dx2/4,dy6/2,10.6]) rotate([90,0,0]) Seilrolle21x7();
-        };
-    };
-
-    // Grundplatte + Reifen45
-    translate([x3,y2,1.4]) {
-        points=[
-            [15,-0.1,0],
-            [189-2.5-x3-15,-0.1,0],
-            [15,131-2.5-y2-7.5,0],
-            [189-2.5-x3-16,131-2.5-y2-7.5,0]
-        ];
-        for (p=points) translate(p) cube([1,7.5+0.1,6+0.1]);
-
-        translate([2,2,6]) {
-            Grundplatte90x90();
-            for (p=[[22.5,22.5],[22.5,67.5],[67.5,22.5],[67.5,67.5]])
-                translate([p[0],p[1],12]) Reifen45();
-        }
-    };
-
-    // 4xNabe und Rad
-    for (i=[0:3]) translate([30,1.5+16+32*i,1.4]) {
-        // ring to hold the tire
-        difference() {
-            cylinder(d=19.5,h=5+0.1);
-            cylinder(d=17.5,h=6);
-        }
-        cylinder(d=4.5,h=5+0.1);
-        cylinder(d=3.5,h=15+0.1);
-        translate([0,0,3]) Reifen30();
-        translate([0,0,14.8]) Nabe();
-    }
-
-    // Halter Flachstein30
-    // 9mm von links. Innenraum 37x4, Höhe 17
-    // U-Profil: 7x7x1, aber Innenbreite eher 4.5?
-    // FIXME: Abstände eher geschätzt
-    translate([9.5,y1,1.4]) {
-        compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
-        translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[0,0,1]);
-        translate([2.5,3.5,0.1])
-            rotate([90,0,90]) Flachstein30();
-    };
-    translate([9.5,y7-37,1.4]) {
-        compartment(5,5,d=1,h=17+0.1,open=[1]);
-        translate([0,32,0]) compartment(5,5,d=1,h=17+0.1,open=[1,0,1]);
-        translate([2.5,3.5,0.1])
-            rotate([90,0,90]) Flachstein30();
-    };
-
-    // Achshalter mit den langen Metallachsen
-    translate([2.7,131/2,1.5+16]) rotate([90,0,90]) {
-        Achshalter30x60();
-        translate([0,10,3.8]) rotate([0,90,0]) Metallachse110();
-        translate([0, 5,3.8]) rotate([0,90,0]) Metallachse110();
-        translate([0, 0,3.8]) rotate([0,90,0]) Metallachse80();
-        translate([0,-5,3.8]) rotate([0,90,0]) Metallachse60();
-        translate([-26,-10,3.8]) rotate([0,90,0]) Metallachse50();
-        translate([ 26,-10,3.8]) rotate([0,90,0]) Metallachse50();
-    }
-
-}
-
-
-
-
-/*
- * Fachunterteilung
- *
- * Größe des Innenraums wird angegeben, die Wände stehen
- * ausserhalb dieses Bereichs.
- *
- * Referenzpunkt: unten links im Innenraum
- *
- * Parameter:
- * - dx: Größe des Innenraums in X-Richtung (Breite)
- * - dy: Größe des Innenraums in Y-Richtung (Tiefe)
- * - d: Wandstärke
- * - h: Höhe
- * - open: vector[4] mit Flags, welche Seiten offen bleiben sollen. Reihenfolge CW: top,right,bottom,left
- */
-
-module compartment(dx=10,dy=10,d=1,h=10,open=[0,0,0,0]) {
-    // top
-    if (!open[0]) translate([-d,dy,0]) cube([dx+2*d,d,h]);
-    // right
-    if (!open[1]) translate([dx,-d,0]) cube([d,dy+2*d,h]);
-    // bottom
-    if (!open[2]) translate([-d,-d,0]) cube([dx+2*d,d,h]);
-    // left
-    if (!open[3]) translate([-d,-d,0]) cube([d,dy+2*d,h]);
 }
 
 
